@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Detail User - Skin Health Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{{ url_for('web_users') }}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Kembali
+    </a>
+    <div class="section-title mb-0">
+        <i class="fas fa-user-circle"></i> Detail User
+    </div>
+</div>
+
+<!-- User Info Card -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-user-card"></i> Informasi User
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>ID:</strong> #{{ user.id }}</p>
+                <p><strong>Nama:</strong> {{ user.name }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Email:</strong> <i class="fas fa-envelope"></i> {{ user.email }}</p>
+                <p><strong>Terdaftar Sejak:</strong> <i class="fas fa-calendar"></i> {{ user.created_at }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skin Records -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-heartbeat"></i> Riwayat Data Kulit</span>
+            <span class="badge bg-primary">{{ skin_records|length }} records</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if skin_records %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Kondisi Kulit</th>
+                            <th>Severity</th>
+                            <th>Catatan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in skin_records %}
+                        <tr>
+                            <td>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ record.created_at }}
+                                </small>
+                            </td>
+                            <td>
+                                <strong>{{ record.skin_condition }}</strong>
+                            </td>
+                            <td>
+                                {% set severity_class = 'success' if record.severity == 'mild' else 'warning' if record.severity == 'moderate' else 'danger' %}
+                                <span class="badge badge-{{ severity_class }}">{{ record.severity }}</span>
+                            </td>
+                            <td>
+                                <small>{{ record.notes if record.notes else '-' }}</small>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus Record">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-5">
+                <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">User belum memiliki riwayat data kulit</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="card mt-4 border-danger">
+    <div class="card-header bg-danger text-white">
+        <i class="fas fa-exclamation-triangle"></i> Zona Berbahaya
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-3">Menghapus user akan menghapus semua data terkait secara permanen.</p>
+        <form method="POST" action="{{ url_for('web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('PERHATIAN: Tindakan ini tidak dapat dibatalkan. Semua data user akan dihapus permanen. Lanjutkan?');">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Hapus User Ini
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

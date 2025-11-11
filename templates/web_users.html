@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Users - Skin Health Manager{% endblock %}
+
+{% block content %}
+<div class="section-title">
+    <i class="fas fa-users"></i> Kelola Users
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-list"></i> Daftar Users</span>
+            <span class="badge bg-primary">{{ users|length }} users</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if users %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Tanggal Daftar</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <strong>#{{ user.id }}</strong>
+                            </td>
+                            <td>
+                                <i class="fas fa-user-circle"></i> {{ user.name }}
+                            </td>
+                            <td>
+                                <i class="fas fa-envelope"></i> {{ user.email }}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ user.created_at }}
+                                </small>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('web_user_detail', user_id=user.id) }}" class="btn btn-sm btn-primary" title="Lihat Detail">
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
+                                <form method="POST" action="{{ url_for('web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus user ini? Data terkait juga akan dihapus.');">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus User">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-5">
+                <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">Belum ada users terdaftar</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Info Box -->
+<div class="alert alert-info mt-4">
+    <i class="fas fa-info-circle"></i>
+    <strong>Info:</strong> Klik tombol "Detail" untuk melihat riwayat data kulit user. Klik "Hapus" untuk menghapus user beserta semua data terkaitnya.
+</div>
+{% endblock %}

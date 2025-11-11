@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Pengaturan - Skin Health Manager{% endblock %}
+
+{% block content %}
+<div class="section-title">
+    <i class="fas fa-cog"></i> Pengaturan
+</div>
+
+<!-- Admin Info Card -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-user-card"></i> Informasi Admin
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-3">
+                    <strong>Nama:</strong>
+                    <span>{{ admin.name }}</span>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-3">
+                    <strong>Email:</strong>
+                    <span>{{ admin.email }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Card -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-lock"></i> Ubah Password
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('web_update_password') }}">
+            <div class="form-group mb-3">
+                <label for="old_password" class="form-label">
+                    <i class="fas fa-lock"></i> Password Lama
+                </label>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    id="old_password" 
+                    name="old_password" 
+                    placeholder="Masukkan password lama Anda"
+                    required
+                >
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="new_password" class="form-label">
+                    <i class="fas fa-lock"></i> Password Baru
+                </label>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    id="new_password" 
+                    name="new_password" 
+                    placeholder="Masukkan password baru (minimal 6 karakter)"
+                    required
+                    minlength="6"
+                >
+                <small class="form-text text-muted">Minimal 6 karakter</small>
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="confirm_password" class="form-label">
+                    <i class="fas fa-lock"></i> Konfirmasi Password Baru
+                </label>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    id="confirm_password" 
+                    name="confirm_password" 
+                    placeholder="Ketik ulang password baru"
+                    required
+                    minlength="6"
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Simpan Password Baru
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Help Section -->
+<div class="card mt-4">
+    <div class="card-header">
+        <i class="fas fa-question-circle"></i> Bantuan
+    </div>
+    <div class="card-body">
+        <h6>Petunjuk Penggunaan Dashboard:</h6>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-check-circle text-success"></i> <strong>Dashboard:</strong> Lihat statistik umum dan user terbaru</li>
+            <li><i class="fas fa-check-circle text-success"></i> <strong>Kelola Users:</strong> Tampilkan, lihat detail, atau hapus user</li>
+            <li><i class="fas fa-check-circle text-success"></i> <strong>Data Kulit:</strong> Kelola semua riwayat pemeriksaan kulit</li>
+            <li><i class="fas fa-check-circle text-success"></i> <strong>Pengaturan:</strong> Ubah password admin</li>
+        </ul>
+
+        <h6 class="mt-4">Keamanan:</h6>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-shield-alt text-warning"></i> Selalu gunakan password yang kuat</li>
+            <li><i class="fas fa-shield-alt text-warning"></i> Jangan bagikan password Anda kepada orang lain</li>
+            <li><i class="fas fa-shield-alt text-warning"></i> Logout setelah selesai menggunakan dashboard</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Logout Button -->
+<div class="mt-4">
+    <a href="{{ url_for('web_logout') }}" class="btn btn-danger btn-lg w-100">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</div>
+{% endblock %}
