@@ -9,13 +9,12 @@ from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_change_this_in_production'
-CORS(app)  # Enable CORS untuk Flutter
+CORS(app)
 
-# Konfigurasi Database XAMPP
 DB_CONFIG = {
     'host': 'localhost',
-    'user': 'root',  # default XAMPP
-    'password': '',  # default XAMPP kosong
+    'user': 'root',
+    'password': '',
     'database': 'flutter_app'
 }
 
@@ -48,7 +47,6 @@ def register():
     try:
         data = request.get_json()
         
-        # Validasi input
         name = data.get('name', '').strip()
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
@@ -77,7 +75,6 @@ def register():
                 'message': 'Kata sandi minimal 6 karakter'
             }), 400
         
-        # Koneksi ke database
         conn = get_db_connection()
         if not conn:
             return jsonify({
@@ -87,7 +84,6 @@ def register():
         
         cursor = conn.cursor(dictionary=True)
         
-        # Cek apakah email sudah terdaftar
         cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         existing_user = cursor.fetchone()
         
@@ -99,10 +95,8 @@ def register():
                 'message': 'Email sudah terdaftar'
             }), 409
         
-        # Hash password
         hashed_password = generate_password_hash(password)
         
-        # Insert user baru
         query = "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)"
         cursor.execute(query, (name, email, hashed_password))
         conn.commit()
@@ -144,7 +138,6 @@ def login():
                 'message': 'Email dan password wajib diisi'
             }), 400
         
-        # Koneksi ke database
         conn = get_db_connection()
         if not conn:
             return jsonify({
@@ -154,7 +147,6 @@ def login():
         
         cursor = conn.cursor(dictionary=True)
         
-        # Cari user berdasarkan email
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
         
@@ -179,6 +171,81 @@ def login():
         
     except Exception as e:
         print(f"Error in login: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Terjadi kesalahan server'
+        }), 500
+
+@app.route('/api/google-signin', methods=['POST'])
+def google_signin():
+    """Endpoint untuk Google Sign-In - simpan atau login user"""
+    try:
+        data = request.get_json()
+        
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip().lower()
+        google_id = data.get('google_id', '').strip()
+        
+        if not name or not email or not google_id:
+            return jsonify({
+                'status': 'error',
+                'message': 'Data tidak lengkap'
+            }), 400
+        
+        if not validate_email(email):
+            return jsonify({
+                'status': 'error',
+                'message': 'Email tidak valid'
+            }), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({
+                'status': 'error',
+                'message': 'Gagal terhubung ke database'
+            }), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        
+        cursor.execute("SELECT id, name, email FROM users WHERE email = %s", (email,))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'status': 'success',
+                'message': 'Login berhasil',
+                'data': {
+                    'id': existing_user['id'],
+                    'name': existing_user['name'],
+                    'email': existing_user['email']
+                }
+            }), 200
+        
+        random_password = generate_password_hash(google_id)
+        
+        query = "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)"
+        cursor.execute(query, (name, email, random_password))
+        conn.commit()
+        
+        user_id = cursor.lastrowid
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Pendaftaran berhasil dengan Google!',
+            'data': {
+                'id': user_id,
+                'name': name,
+                'email': email
+            }
+        }), 201
+        
+    except Exception as e:
+        print(f"Error in google_signin: {e}")
         return jsonify({
             'status': 'error',
             'message': 'Terjadi kesalahan server'
@@ -288,19 +355,15 @@ def web_dashboard():
         
         cursor = conn.cursor(dictionary=True)
         
-        # Hitung jumlah users
         cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 0")
         total_users = cursor.fetchone()['count']
         
-        # Hitung jumlah skin records
         cursor.execute("SELECT COUNT(*) as count FROM skin_data")
         total_records = cursor.fetchone()['count']
         
-        # Dapatkan users terbaru
         cursor.execute("SELECT id, name, email, created_at FROM users WHERE is_admin = 0 ORDER BY created_at DESC LIMIT 5")
         recent_users = cursor.fetchall()
-        
-        # Dapatkan statistik skin conditions
+
         cursor.execute("SELECT skin_condition, COUNT(*) as count FROM skin_data GROUP BY skin_condition")
         skin_stats = cursor.fetchall()
         
@@ -352,7 +415,6 @@ def web_user_detail(user_id):
         
         cursor = conn.cursor(dictionary=True)
         
-        # Dapatkan data user
         cursor.execute("SELECT id, name, email, created_at FROM users WHERE id = %s AND is_admin = 0", (user_id,))
         user = cursor.fetchone()
         
@@ -360,7 +422,6 @@ def web_user_detail(user_id):
             flash('User tidak ditemukan', 'warning')
             return redirect(url_for('web_users'))
         
-        # Dapatkan skin data user
         cursor.execute("""
             SELECT id, skin_condition, severity, notes, created_at 
             FROM skin_data 
@@ -390,10 +451,8 @@ def web_delete_user(user_id):
         
         cursor = conn.cursor()
         
-        # Hapus skin data terlebih dahulu
         cursor.execute("DELETE FROM skin_data WHERE user_id = %s", (user_id,))
         
-        # Hapus user
         cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         conn.commit()
         
@@ -520,7 +579,6 @@ def web_update_password():
             conn.close()
             return redirect(url_for('web_settings'))
         
-        # Update password
         hashed_password = generate_password_hash(new_password)
         cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, admin_id))
         conn.commit()

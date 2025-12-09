@@ -66,7 +66,7 @@ conn = mysql.connector.connect(
 )
 
 cursor = conn.cursor()
-admin_password = generate_password_hash('admin123')  # Ubah dengan password yang Anda inginkan
+admin_password = generate_password_hash('admin123')
 
 cursor.execute(
     "INSERT INTO users (name, email, password, is_admin) VALUES (%s, %s, %s, %s)",
