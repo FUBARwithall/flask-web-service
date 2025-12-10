@@ -282,6 +282,9 @@
                     <a class="nav-link {% if request.endpoint == 'web_users' %}active{% endif %}" href="{{ url_for('web_users') }}">
                         <i class="fas fa-users"></i> Kelola Users
                     </a>
+                    <a class="nav-link {% if request.endpoint == 'web_articles' %}active{% endif %}" href="{{ url_for('web_articles') }}">
+                        <i class="fas fa-newspaper"></i> Kelola Artikel
+                    </a>
                     <a class="nav-link {% if request.endpoint == 'web_skin_data' %}active{% endif %}" href="{{ url_for('web_skin_data') }}">
                         <i class="fas fa-heartbeat"></i> Data Kulit
                     </a>

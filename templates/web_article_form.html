@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if article else 'Buat' }} Artikel - Admin{% endblock %}
+
+{% block content %}
+<div class="section-title">
+    <i class="fas fa-file-alt"></i> {{ 'Edit' if article else 'Buat' }} Artikel
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Judul</label>
+                <input type="text" name="title" class="form-control" value="{{ article.title if article else '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Isi / Deskripsi</label>
+                <textarea name="description" class="form-control" rows="10" required>{{ article.description if article else '' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Gambar / Emoji (opsional)</label>
+                <input type="text" name="image" class="form-control" value="{{ article.image if article else '' }}">
+                <small class="text-muted">Anda bisa menaruh emoji atau URL gambar</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Simpan</button>
+                <a href="{{ url_for('web_articles') }}" class="btn btn-secondary">Batal</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

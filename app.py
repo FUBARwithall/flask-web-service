@@ -286,6 +286,132 @@ def get_user(user_id):
             'status': 'error',
             'message': 'Terjadi kesalahan server'
         }), 500
+# ==================== ARTICLES API ====================
+
+@app.route('/api/articles', methods=['GET'])
+def get_articles():
+    """Ambil semua artikel"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, title, description, image, created_at FROM articles ORDER BY created_at DESC")
+        articles = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'data': articles}), 200
+    except Exception as e:
+        print(f"Error in get_articles: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/articles/<int:article_id>', methods=['GET'])
+def get_article(article_id):
+    """Ambil detail sebuah artikel"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, title, description, image, created_at FROM articles WHERE id = %s", (article_id,))
+        article = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not article:
+            return jsonify({'status': 'error', 'message': 'Artikel tidak ditemukan'}), 404
+
+        return jsonify({'status': 'success', 'data': article}), 200
+    except Exception as e:
+        print(f"Error in get_article: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/articles', methods=['POST'])
+def create_article():
+    """Buat artikel baru (sebaiknya dibatasi untuk admin)"""
+    try:
+        data = request.get_json() or {}
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        image = data.get('image', '').strip() if data.get('image') else None
+
+        if not title or not description:
+            return jsonify({'status': 'error', 'message': 'Title dan description wajib diisi'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO articles (title, description, image) VALUES (%s, %s, %s)", (title, description, image))
+        conn.commit()
+        article_id = cursor.lastrowid
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'message': 'Artikel dibuat', 'data': {'id': article_id, 'title': title, 'description': description, 'image': image}}), 201
+    except Exception as e:
+        print(f"Error in create_article: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/articles/<int:article_id>', methods=['PUT'])
+def update_article(article_id):
+    """Update artikel (sebaiknya dibatasi untuk admin)"""
+    try:
+        data = request.get_json() or {}
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        image = data.get('image', '').strip() if data.get('image') else None
+
+        if not title or not description:
+            return jsonify({'status': 'error', 'message': 'Title dan description wajib diisi'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("UPDATE articles SET title = %s, description = %s, image = %s WHERE id = %s", (title, description, image, article_id))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'message': 'Artikel diperbarui'}), 200
+    except Exception as e:
+        print(f"Error in update_article: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/articles/<int:article_id>', methods=['DELETE'])
+def delete_article(article_id):
+    """Hapus artikel (sebaiknya dibatasi untuk admin)"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM articles WHERE id = %s", (article_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'message': 'Artikel dihapus'}), 200
+    except Exception as e:
+        print(f"Error in delete_article: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
 
 # ==================== WEB INTERFACE ROUTES ====================
 
@@ -465,6 +591,139 @@ def web_delete_user(user_id):
         print(f"Error in web_delete_user: {e}")
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_users'))
+
+
+@app.route('/web/articles')
+@login_required
+def web_articles():
+    """Halaman manajemen artikel"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_dashboard'))
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, title, description, image, created_at FROM articles ORDER BY created_at DESC")
+        articles = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return render_template('web_articles.html', articles=articles)
+    except Exception as e:
+        print(f"Error in web_articles: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_dashboard'))
+
+
+@app.route('/web/articles/create', methods=['GET', 'POST'])
+@login_required
+def web_create_article():
+    """Buat artikel baru melalui admin dashboard"""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        image = request.form.get('image', '').strip() or None
+
+        if not title or not description:
+            flash('Title dan description wajib diisi', 'danger')
+            return redirect(url_for('web_create_article'))
+
+        try:
+            conn = get_db_connection()
+            if not conn:
+                flash('Gagal terhubung ke database', 'danger')
+                return redirect(url_for('web_articles'))
+
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO articles (title, description, image) VALUES (%s, %s, %s)", (title, description, image))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Artikel berhasil dibuat', 'success')
+            return redirect(url_for('web_articles'))
+        except Exception as e:
+            print(f"Error in web_create_article: {e}")
+            flash('Terjadi kesalahan server', 'danger')
+            return redirect(url_for('web_articles'))
+
+    return render_template('web_article_form.html', article=None)
+
+
+@app.route('/web/articles/<int:article_id>/edit', methods=['GET', 'POST'])
+@login_required
+def web_edit_article(article_id):
+    """Edit artikel melalui admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_articles'))
+
+        cursor = conn.cursor(dictionary=True)
+        if request.method == 'POST':
+            title = request.form.get('title', '').strip()
+            description = request.form.get('description', '').strip()
+            image = request.form.get('image', '').strip() or None
+
+            if not title or not description:
+                flash('Title dan description wajib diisi', 'danger')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('web_edit_article', article_id=article_id))
+
+            cursor.execute("UPDATE articles SET title = %s, description = %s, image = %s WHERE id = %s", (title, description, image, article_id))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Artikel berhasil diperbarui', 'success')
+            return redirect(url_for('web_articles'))
+
+        cursor.execute("SELECT id, title, description, image, created_at FROM articles WHERE id = %s", (article_id,))
+        article = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not article:
+            flash('Artikel tidak ditemukan', 'warning')
+            return redirect(url_for('web_articles'))
+
+        return render_template('web_article_form.html', article=article)
+    except Exception as e:
+        print(f"Error in web_edit_article: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_articles'))
+
+
+@app.route('/web/articles/<int:article_id>/delete', methods=['POST'])
+@login_required
+def web_delete_article(article_id):
+    """Hapus artikel dari admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_articles'))
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM articles WHERE id = %s", (article_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        flash('Artikel berhasil dihapus', 'success')
+        return redirect(url_for('web_articles'))
+    except Exception as e:
+        print(f"Error in web_delete_article: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_articles'))
 
 @app.route('/web/skin-data')
 @login_required

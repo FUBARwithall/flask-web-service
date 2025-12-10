@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Artikel - Admin{% endblock %}
+
+{% block content %}
+<div class="section-title"><i class="fas fa-newspaper"></i> Kelola Artikel</div>
+
+<div class="card mb-4">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">Daftar Artikel</h5>
+            <small class="text-muted">Kelola konten artikel yang tampil di aplikasi</small>
+        </div>
+        <div>
+            <a href="{{ url_for('web_create_article') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Buat Artikel Baru
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if articles %}
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Judul</th>
+                    <th>Ringkasan</th>
+                    <th>Tanggal</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in articles %}
+                <tr>
+                    <td>{{ a.title }}</td>
+                    <td>{{ a.description[:120] }}{% if a.description|length > 120 %}...{% endif %}</td>
+                    <td><small class="text-muted">{{ a.created_at }}</small></td>
+                    <td>
+                        <a href="{{ url_for('web_edit_article', article_id=a.id) }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                        <form action="{{ url_for('web_delete_article', article_id=a.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus artikel ini?');">
+                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="fas fa-inbox" style="font-size:2rem"></i>
+            <p class="mt-2">Belum ada artikel</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
