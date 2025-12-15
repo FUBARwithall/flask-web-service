@@ -44,6 +44,22 @@ CREATE TABLE IF NOT EXISTS skin_data (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Skin condition records for users';
 
 -- ============================================
+-- Table: products
+-- ============================================
+CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    merek VARCHAR(255) NOT NULL COMMENT 'Brand name',
+    nama VARCHAR(255) NOT NULL COMMENT 'Product name',
+    harga DECIMAL(10,2) NOT NULL COMMENT 'Price',
+    kategori_penyakit VARCHAR(255) COMMENT 'Disease category',
+    image VARCHAR(500) COMMENT 'Image path or URL',
+    
+    -- Indexes
+    INDEX idx_merek (merek),
+    INDEX idx_kategori_penyakit (kategori_penyakit)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Products table';
+
+-- ============================================
 -- Sample Data for Testing
 -- ============================================
 
@@ -59,6 +75,17 @@ INSERT INTO skin_data (user_id, skin_condition, severity, notes) VALUES
 (2, 'berminyak', 'mild', 'Kulit berminyak di T-zone'),
 (3, 'normal', 'mild', 'Kondisi kulit normal'),
 (3, 'dermatitis_perioral', 'severe', 'Dermatitis di sekitar mulut');
+
+-- Insert sample products
+INSERT INTO products (merek, nama, harga, kategori_penyakit, image) VALUES 
+('Kalpanax', 'Kalpanax Cream 10g', 18000.00, 'infeksi jamur', '🧴'),
+('Canesten', 'Canesten Krim 10g', 22000.00, 'infeksi jamur', '🧴'),
+('Elocon', 'Elocon Ointment 5g', 46000.00, 'eksim', '🧴'),
+('Scabimite', 'Scabimite Permethrin Cream 5%', 29000.00, 'kudis', '🧴'),
+('Tacrolimus', 'Tacrolimus Ointment 0.03%', 68000.00, 'vitiligo', '🧴'),
+('Daivobet', 'Daivobet Gel 15g', 99000.00, 'psoriasis', '🧴'),
+('Erymed', 'Erymed Gel 25ml', 28000.00, 'jerawat', '🧴'),
+('Zoralin', 'Zoralin Lotion 30ml', 27000.00, 'cacar air', '🧴');
 
 -- ============================================
 -- Views (Optional - for analytics)

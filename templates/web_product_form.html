@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ 'Edit' if article else 'Buat' }} Artikel - Admin{% endblock %}
+{% block title %}{{ 'Edit' if product else 'Buat' }} Produk - Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -25,36 +25,46 @@
 
 {% block content %}
 <div class="page-header">
-    <h1><i class="fas fa-file-alt"></i> {{ 'Edit' if article else 'Buat' }} Artikel</h1>
+    <h1><i class="fas fa-file-alt"></i> {{ 'Edit' if product else 'Buat' }} Produk</h1>
 </div>
 
 <div class="card-wrapper">
     <form method="post" enctype="multipart/form-data">
         <div class="form-group">
-            <label class="form-label" for="title">Judul <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="title" name="title" class="form-input" value="{{ article.title if article else '' }}" required>
+            <label class="form-label" for="merek">Merek <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="merek" name="merek" class="form-input" value="{{ product.merek if product else '' }}" required>
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="description">Isi / Deskripsi <span style="color: #ef4444;">*</span></label>
-            <textarea id="description" name="description" class="form-input textarea" required>{{ article.description if article else '' }}</textarea>
+            <label class="form-label" for="nama">Nama <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="nama" name="nama" class="form-input" value="{{ product.nama if product else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="harga">Harga <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="harga" name="harga" class="form-input" value="{{ product.harga if product else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="kategori_penyakit">Kategori penyakit <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="kategori_penyakit" name="kategori_penyakit" class="form-input" value="{{ product.kategori_penyakit if product else '' }}" required>
         </div>
 
         <div class="form-group">
             <label class="form-label" for="image">Gambar (opsional)</label>
-            {% if article and article.image %}
+            {% if product and product.image %}
             <div style="margin-bottom: 12px;">
-                <img src="{{ url_for('uploaded_file', filename=article.image) }}" alt="Gambar Saat Ini" class="image-preview">
+                <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="Gambar Saat Ini" class="image-preview">
                 <div class="helper-text">Gambar saat ini</div>
             </div>
             {% endif %}
             <input type="file" id="image" name="image" class="form-input" accept="image/*">
-            <div class="helper-text">Upload gambar artikel (JPG, PNG, GIF). Biarkan kosong jika tidak ingin mengubah gambar.</div>
+            <div class="helper-text">Upload gambar produk (JPG, PNG, GIF). Biarkan kosong jika tidak ingin mengubah gambar.</div>
         </div>
 
         <div style="display: flex; gap: 12px; margin-top: 32px;">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
-            <a href="{{ url_for('web_articles') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
+            <a href="{{ url_for('web_products') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
         </div>
     </form>
 </div>

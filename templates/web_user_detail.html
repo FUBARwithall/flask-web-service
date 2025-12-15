@@ -2,102 +2,148 @@
 
 {% block title %}Detail User - Skin Health Manager{% endblock %}
 
+{% block extra_css %}
+<style>
+    .back-button { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; border: none; background: #e2e8f0; color: #475569; text-decoration: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; margin-bottom: 24px; font-size: 0.95rem; }
+    .back-button:hover { background: #cbd5e1; }
+    .back-button i { font-size: 1rem; }
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
+    .page-header i { color: #3b82f6; }
+    .info-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
+    .info-card-header { display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 600; color: #1e293b; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; margin-bottom: 16px; }
+    .info-card-header i { color: #3b82f6; font-size: 1.3rem; }
+    .info-row { display: flex; flex-direction: column; gap: 6px;}
+    .info-item strong { display: block; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .info-item { color: #334155; }
+    .table-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px; }
+    .table-header { padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .table-header-title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #1e293b; }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background: #dbeafe; color: #1e40af; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table thead { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+    .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .table tbody tr:hover { background: #f8fafc; }
+    .badge-severity { padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+    .badge-mild { background: #dcfce7; color: #166534; }
+    .badge-moderate { background: #fef3c7; color: #92400e; }
+    .badge-severe { background: #fee2e2; color: #991b1b; }
+    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
+    .empty-state { padding: 60px 20px; text-align: center; }
+    .empty-state i { font-size: 3rem; color: #cbd5e1; }
+    .empty-state p { color: #94a3b8; margin-top: 12px; }
+    .danger-zone { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ef4444; overflow: hidden; }
+    .danger-zone-header { background: #fef2f2; padding: 16px 24px; display: flex; align-items: center; gap: 12px; font-weight: 600; color: #991b1b; }
+    .danger-zone-header i { font-size: 1.2rem; }
+    .danger-zone-body { padding: 20px 24px; }
+    .danger-zone-body p { color: #64748b; margin-bottom: 16px; }
+    @media (max-width: 768px) {
+        .info-row { 
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex align-items-center gap-2 mb-4">
-    <a href="{{ url_for('web_users') }}" class="btn btn-secondary btn-sm">
-        <i class="fas fa-arrow-left"></i> Kembali
-    </a>
-    <div class="section-title mb-0">
-        <i class="fas fa-user-circle"></i> Detail User
-    </div>
+<a href="{{ url_for('web_users') }}" class="back-button">
+    <i class="fas fa-arrow-left"></i> Kembali
+</a>
+
+<div class="page-header">
+    <h1><i class="fas fa-user-circle"></i> Detail User</h1>
 </div>
 
 <!-- User Info Card -->
-<div class="card mb-4">
-    <div class="card-header">
-        <i class="fas fa-user-card"></i> Informasi User
+<div class="info-card">
+    <div class="info-card-header">
+        <i class="fas fa-id-card"></i> Informasi User
     </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>ID:</strong> #{{ user.id }}</p>
-                <p><strong>Nama:</strong> {{ user.name }}</p>
+    <div class="info-card-body">
+        <div class="info-row">
+            <div class="info-item">
+                <span class="info-label">ID = </span>
+                <span class="info-value">{{ user.id }}</span>
             </div>
-            <div class="col-md-6">
-                <p><strong>Email:</strong> <i class="fas fa-envelope"></i> {{ user.email }}</p>
-                <p><strong>Terdaftar Sejak:</strong> <i class="fas fa-calendar"></i> {{ user.created_at }}</p>
+            <div class="info-item">
+                <span class="info-label">Nama = </span>
+                <span class="info-value">{{ user.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email =</span>
+                <span class="info-value">
+                    {{ user.email }}
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Terdaftar Sejak = </span>
+                <span class="info-value">
+                    {{ user.created_at }}
+                </span>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Skin Records -->
-<div class="card">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-heartbeat"></i> Riwayat Data Kulit</span>
-            <span class="badge bg-primary">{{ skin_records|length }} records</span>
-        </div>
+<div class="table-card">
+    <div class="table-header">
+        <div class="table-header-title"><i class="fas fa-heartbeat"></i> Riwayat Data Kulit</div>
+        <span class="badge">{{ skin_records|length }} records</span>
     </div>
-    <div class="card-body p-0">
-        {% if skin_records %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Kondisi Kulit</th>
-                            <th>Severity</th>
-                            <th>Catatan</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in skin_records %}
-                        <tr>
-                            <td>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock"></i> {{ record.created_at }}
-                                </small>
-                            </td>
-                            <td>
-                                <strong>{{ record.skin_condition }}</strong>
-                            </td>
-                            <td>
-                                {% set severity_class = 'success' if record.severity == 'mild' else 'warning' if record.severity == 'moderate' else 'danger' %}
-                                <span class="badge badge-{{ severity_class }}">{{ record.severity }}</span>
-                            </td>
-                            <td>
-                                <small>{{ record.notes if record.notes else '-' }}</small>
-                            </td>
-                            <td>
-                                <form method="POST" action="{{ url_for('web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus Record">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="text-center p-5">
-                <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                <p class="text-muted mt-3">User belum memiliki riwayat data kulit</p>
-            </div>
-        {% endif %}
+    {% if skin_records %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Kondisi Kulit</th>
+                    <th>Severity</th>
+                    <th>Catatan</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in skin_records %}
+                <tr>
+                    <td style="font-size: 0.85rem; color: #94a3b8;"><i class="fas fa-clock"></i> {{ record.created_at }}</td>
+                    <td><strong>{{ record.skin_condition }}</strong></td>
+                    <td>
+                        {% set severity_class = 'mild' if record.severity == 'mild' else 'moderate' if record.severity == 'moderate' else 'severe' %}
+                        <span class="badge-severity badge-{{ severity_class }}">{{ record.severity }}</span>
+                    </td>
+                    <td style="font-size: 0.9rem;">{{ record.notes if record.notes else '-' }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
+                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus Record">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>User belum memiliki riwayat data kulit</p>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Danger Zone -->
-<div class="card mt-4 border-danger">
-    <div class="card-header bg-danger text-white">
+<div class="danger-zone">
+    <div class="danger-zone-header">
         <i class="fas fa-exclamation-triangle"></i> Zona Berbahaya
     </div>
-    <div class="card-body">
-        <p class="text-muted mb-3">Menghapus user akan menghapus semua data terkait secara permanen.</p>
+    <div class="danger-zone-body">
+        <p>Menghapus user akan menghapus semua data terkait secara permanen.</p>
         <form method="POST" action="{{ url_for('web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('PERHATIAN: Tindakan ini tidak dapat dibatalkan. Semua data user akan dihapus permanen. Lanjutkan?');">
             <button type="submit" class="btn btn-danger">
                 <i class="fas fa-trash"></i> Hapus User Ini

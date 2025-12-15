@@ -1,15 +1,25 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash, send_from_directory
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import re
 from datetime import datetime
 from functools import wraps
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_change_this_in_production'
 CORS(app)
+
+# Upload configuration
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Ensure upload directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -32,14 +42,14 @@ def validate_email(email):
     pattern = r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$'
     return re.match(pattern, email) is not None
 
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    """Endpoint untuk cek server status"""
-    return jsonify({
-        'status': 'success',
-        'message': 'Server is running',
-        'timestamp': datetime.now().isoformat()
-    }), 200
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """Serve uploaded files"""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -412,7 +422,136 @@ def delete_article(article_id):
         print(f"Error in delete_article: {e}")
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
+# ==================== PRODUCTS API ====================
 
+@app.route('/api/products', methods=['GET'])
+def get_products():
+    """Ambil semua products"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products ORDER BY id DESC")
+        products = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'data': products}), 200
+    except Exception as e:
+        print(f"Error in get_products: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/products/<int:product_id>', methods=['GET'])
+def get_product(product_id):
+    """Ambil detail sebuah product"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products WHERE id = %s", (product_id,))
+        product = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not product:
+            return jsonify({'status': 'error', 'message': 'Product tidak ditemukan'}), 404
+
+        return jsonify({'status': 'success', 'data': product}), 200
+    except Exception as e:
+        print(f"Error in get_product: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/products', methods=['POST'])
+def create_product():
+    """Buat product baru (sebaiknya dibatasi untuk admin)"""
+    try:
+        data = request.get_json() or {}
+        merek = data.get('title', '').strip()
+        nama = data.get('description', '').strip()
+        harga = data.get('harga', '').strip()
+        kategori_penyakit = data.get('kategori_penyakit', '').strip()
+        image = data.get('image', '').strip() if data.get('image') else None
+
+        if not merek or not nama or not harga or not kategori_penyakit:
+            return jsonify({'status': 'error', 'message': 'Field wajib diisi'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO products (merek, nama, harga, kategori_penyakit, image) VALUES (%s, %s, %s, %s, %s)", (merek, nama, harga, kategori_penyakit, image))
+        conn.commit()
+        product_id = cursor.lastrowid
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'message': 'Product dibuat', 'data': {'id': product_id, 'merek': merek, 'nama': nama, 'harga': harga, 'kategori_penyakit': kategori_penyakit, 'image': image}}), 201
+    except Exception as e:
+        print(f"Error in create_product: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/products/<int:product_id>', methods=['PUT'])
+def update_product(product_id):
+    """Update product (sebaiknya dibatasi untuk admin)"""
+    try:
+        data = request.get_json() or {}
+        merek = data.get('title', '').strip()
+        nama = data.get('description', '').strip()
+        harga = data.get('harga', '').strip()
+        kategori_penyakit = data.get('kategori_penyakit', '').strip()
+        image = data.get('image', '').strip() if data.get('image') else None
+
+        if not merek or not nama or not harga or not kategori_penyakit:
+            return jsonify({'status': 'error', 'message': 'Field wajib diisi'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("UPDATE products SET merek = %s, nama = %s, harga = %s, kategori_penyakit = %s, image = %s WHERE id = %s", (merek, nama, harga, kategori_penyakit, image, product_id))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'message': 'Product diperbarui'}), 200
+    except Exception as e:
+        print(f"Error in update_product: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
+@app.route('/api/products/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    """Hapus product (sebaiknya dibatasi untuk admin)"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'message': 'Product dihapus'}), 200
+    except Exception as e:
+        print(f"Error in delete_product: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+    
 # ==================== WEB INTERFACE ROUTES ====================
 
 def login_required(f):
@@ -424,6 +563,8 @@ def login_required(f):
             return redirect(url_for('web_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# ==================== WEB LOGIN ====================
 
 @app.route('/web/login', methods=['GET', 'POST'])
 def web_login():
@@ -461,12 +602,16 @@ def web_login():
     
     return render_template('web_login.html')
 
+# ==================== WEB LOGOUT ====================
+
 @app.route('/web/logout')
 def web_logout():
     """Logout dari admin"""
     session.clear()
     flash('Anda berhasil logout', 'success')
     return redirect(url_for('web_login'))
+
+# ==================== WEB DASHBOARD ====================
 
 @app.route('/web')
 @app.route('/web/dashboard')
@@ -505,6 +650,8 @@ def web_dashboard():
         print(f"Error in web_dashboard: {e}")
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_login'))
+    
+# ==================== WEB USERS ====================
 
 @app.route('/web/users')
 @login_required
@@ -592,6 +739,7 @@ def web_delete_user(user_id):
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_users'))
 
+# ==================== WEB ARTICLES ====================
 
 @app.route('/web/articles')
 @login_required
@@ -624,7 +772,19 @@ def web_create_article():
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         description = request.form.get('description', '').strip()
-        image = request.form.get('image', '').strip() or None
+        
+        # Handle file upload
+        image_filename = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # Add timestamp to avoid conflicts
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                filename = timestamp + filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                image_filename = filename
 
         if not title or not description:
             flash('Title dan description wajib diisi', 'danger')
@@ -637,7 +797,7 @@ def web_create_article():
                 return redirect(url_for('web_articles'))
 
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO articles (title, description, image) VALUES (%s, %s, %s)", (title, description, image))
+            cursor.execute("INSERT INTO articles (title, description, image) VALUES (%s, %s, %s)", (title, description, image_filename))
             conn.commit()
 
             cursor.close()
@@ -667,7 +827,22 @@ def web_edit_article(article_id):
         if request.method == 'POST':
             title = request.form.get('title', '').strip()
             description = request.form.get('description', '').strip()
-            image = request.form.get('image', '').strip() or None
+            
+            image_filename = None
+            if 'image' in request.files:
+                file = request.files['image']
+                if file and file.filename != '' and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                    filename = timestamp + filename
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+                    image_filename = filename
+            
+            if not image_filename:
+                cursor.execute("SELECT image FROM articles WHERE id = %s", (article_id,))
+                current = cursor.fetchone()
+                image_filename = current['image'] if current else None
 
             if not title or not description:
                 flash('Title dan description wajib diisi', 'danger')
@@ -675,7 +850,7 @@ def web_edit_article(article_id):
                 conn.close()
                 return redirect(url_for('web_edit_article', article_id=article_id))
 
-            cursor.execute("UPDATE articles SET title = %s, description = %s, image = %s WHERE id = %s", (title, description, image, article_id))
+            cursor.execute("UPDATE articles SET title = %s, description = %s, image = %s WHERE id = %s", (title, description, image_filename, article_id))
             conn.commit()
 
             cursor.close()
@@ -724,6 +899,170 @@ def web_delete_article(article_id):
         print(f"Error in web_delete_article: {e}")
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_articles'))
+    
+# ==================== WEB PRODUCTS ====================
+    
+@app.route('/web/products')
+@login_required
+def web_products():
+    """Halaman manajemen product"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_dashboard'))
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products ORDER BY id DESC")
+        products = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return render_template('web_products.html', products=products)
+    except Exception as e:
+        print(f"Error in web_products: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_dashboard'))
+
+
+@app.route('/web/products/create', methods=['GET', 'POST'])
+@login_required
+def web_create_product():
+    """Buat product baru melalui admin dashboard"""
+    if request.method == 'POST':
+        merek = request.form.get('merek', '').strip()
+        nama = request.form.get('nama', '').strip()
+        harga = request.form.get('harga', '').strip()
+        kategori_penyakit = request.form.get('kategori_penyakit', '').strip()
+        
+        image_filename = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                filename = timestamp + filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                image_filename = filename
+
+        if not merek or not nama or not harga or not kategori_penyakit:
+            flash('Merek, nama, harga, dan kategori penyakit wajib diisi', 'danger')
+            return redirect(url_for('web_create_product'))
+
+        try:
+            conn = get_db_connection()
+            if not conn:
+                flash('Gagal terhubung ke database', 'danger')
+                return redirect(url_for('web_products'))
+
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO products (merek, nama, harga, kategori_penyakit, image) VALUES (%s, %s, %s, %s, %s)", (merek, nama, harga, kategori_penyakit, image_filename))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Produk berhasil dibuat', 'success')
+            return redirect(url_for('web_products'))
+        except Exception as e:
+            print(f"Error in web_create_product: {e}")
+            flash('Terjadi kesalahan server', 'danger')
+            return redirect(url_for('web_products'))
+
+    return render_template('web_product_form.html', product=None)
+
+@app.route('/web/products/<int:product_id>/edit', methods=['GET', 'POST'])
+@login_required
+def web_edit_product(product_id):
+    """Edit product melalui admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_products'))
+
+        cursor = conn.cursor(dictionary=True)
+        if request.method == 'POST':
+            merek = request.form.get('merek', '').strip()
+            nama = request.form.get('nama', '').strip()
+            harga = request.form.get('harga', '').strip()
+            kategori_penyakit = request.form.get('kategori_penyakit', '').strip()
+            
+            image_filename = None
+            if 'image' in request.files:
+                file = request.files['image']
+                if file and file.filename != '' and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                    filename = timestamp + filename
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+                    image_filename = filename
+            
+            if not image_filename:
+                cursor.execute("SELECT image FROM products WHERE id = %s", (product_id,))
+                current = cursor.fetchone()
+                image_filename = current['image'] if current else None
+
+            if not merek or not nama or not harga or not kategori_penyakit:
+                flash('Merek, nama, harga, dan kategori penyakit wajib diisi', 'danger')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('web_edit_product', product_id=product_id))
+
+            cursor.execute("UPDATE products SET merek = %s, nama = %s, harga = %s, kategori_penyakit = %s, image = %s WHERE id = %s", (merek, nama, harga, kategori_penyakit, image_filename, product_id))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Produk berhasil diperbarui', 'success')
+            return redirect(url_for('web_products'))
+
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products WHERE id = %s", (product_id,))
+        product = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not product:
+            flash('Produk tidak ditemukan', 'warning')
+            return redirect(url_for('web_products'))
+
+        return render_template('web_product_form.html', product=product)
+    except Exception as e:
+        print(f"Error in web_edit_product: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_products'))
+
+
+@app.route('/web/products/<int:product_id>/delete', methods=['POST'])
+@login_required
+def web_delete_product(product_id):
+    """Hapus product dari admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_product'))
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        flash('Produk berhasil dihapus', 'success')
+        return redirect(url_for('web_products'))
+    except Exception as e:
+        print(f"Error in web_delete_article: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_products'))
+    
+# ==================== WEB SKIN DATA ====================
 
 @app.route('/web/skin-data')
 @login_required
@@ -776,6 +1115,8 @@ def web_delete_skin_record(record_id):
         print(f"Error in web_delete_skin_record: {e}")
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_skin_data'))
+    
+# ==================== WEB SETTINGS ====================
 
 @app.route('/web/settings')
 @login_required

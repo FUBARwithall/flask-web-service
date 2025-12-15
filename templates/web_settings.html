@@ -2,30 +2,62 @@
 
 {% block title %}Pengaturan - Skin Health Manager{% endblock %}
 
+{% block extra_css %}
+<style>
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
+    .page-header i { color: #3b82f6; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
+    .card-header { display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 600; color: #1e293b; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; margin-bottom: 20px; }
+    .card-header i { color: #3b82f6; font-size: 1.3rem; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #334155; font-size: 0.95rem; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; font-family: inherit; transition: all 0.2s ease; }
+    .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .helper-text { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-lg { padding: 14px 24px; font-size: 1rem; }
+    .btn-block { width: 100%; }
+    .info-row { display: flex; flex-direction: column; gap: 6px;}
+    .info-item strong { display: block; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .info-item { color: #334155; }
+    .help-list { list-style: none; padding: 0; }
+    .help-list li { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; color: #475569; }
+    .help-list i { color: #16a34a; flex-shrink: 0; margin-top: 2px; }
+    .help-section h6 { font-weight: 600; color: #1e293b; margin: 20px 0 12px 0; font-size: 1rem; }
+    .warning-list { list-style: none; padding: 0; }
+    .warning-list li { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; color: #475569; }
+    .warning-list i { color: #d97706; flex-shrink: 0; margin-top: 2px; }
+    @media (max-width: 768px) {
+        .info-row { 
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="section-title">
-    <i class="fas fa-cog"></i> Pengaturan
+<div class="page-header">
+    <h1><i class="fas fa-cog"></i> Pengaturan</h1>
 </div>
 
 <!-- Admin Info Card -->
-<div class="card mb-4">
+<div class="card">
     <div class="card-header">
         <i class="fas fa-user-card"></i> Informasi Admin
     </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <p class="mb-3">
-                    <strong>Nama:</strong>
-                    <span>{{ admin.name }}</span>
-                </p>
-            </div>
-            <div class="col-md-6">
-                <p class="mb-3">
-                    <strong>Email:</strong>
-                    <span>{{ admin.email }}</span>
-                </p>
-            </div>
+    <div class="info-row">
+        <div class="info-item">
+            <span>Nama admin = </span>
+            <span>{{ admin.name }}</span>
+        </div>
+        <div class="info-item">
+            <span>Email = </span>
+            <span>{{ admin.email }}</span>
         </div>
     </div>
 </div>
@@ -35,86 +67,61 @@
     <div class="card-header">
         <i class="fas fa-lock"></i> Ubah Password
     </div>
-    <div class="card-body">
-        <form method="POST" action="{{ url_for('web_update_password') }}">
-            <div class="form-group mb-3">
-                <label for="old_password" class="form-label">
-                    <i class="fas fa-lock"></i> Password Lama
-                </label>
-                <input 
-                    type="password" 
-                    class="form-control" 
-                    id="old_password" 
-                    name="old_password" 
-                    placeholder="Masukkan password lama Anda"
-                    required
-                >
-            </div>
+    <form method="POST" action="{{ url_for('web_update_password') }}">
+        <div class="form-group">
+            <label for="old_password" class="form-label">
+                <i class="fas fa-lock"></i> Password Lama <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                type="password" 
+                class="form-input" 
+                id="old_password" 
+                name="old_password" 
+                placeholder="Masukkan password lama Anda"
+                required
+            >
+        </div>
 
-            <div class="form-group mb-3">
-                <label for="new_password" class="form-label">
-                    <i class="fas fa-lock"></i> Password Baru
-                </label>
-                <input 
-                    type="password" 
-                    class="form-control" 
-                    id="new_password" 
-                    name="new_password" 
-                    placeholder="Masukkan password baru (minimal 6 karakter)"
-                    required
-                    minlength="6"
-                >
-                <small class="form-text text-muted">Minimal 6 karakter</small>
-            </div>
+        <div class="form-group">
+            <label for="new_password" class="form-label">
+                <i class="fas fa-lock"></i> Password Baru <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                type="password" 
+                class="form-input" 
+                id="new_password" 
+                name="new_password" 
+                placeholder="Masukkan password baru (minimal 6 karakter)"
+                required
+                minlength="6"
+            >
+            <div class="helper-text">Minimal 6 karakter</div>
+        </div>
 
-            <div class="form-group mb-4">
-                <label for="confirm_password" class="form-label">
-                    <i class="fas fa-lock"></i> Konfirmasi Password Baru
-                </label>
-                <input 
-                    type="password" 
-                    class="form-control" 
-                    id="confirm_password" 
-                    name="confirm_password" 
-                    placeholder="Ketik ulang password baru"
-                    required
-                    minlength="6"
-                >
-            </div>
+        <div class="form-group">
+            <label for="confirm_password" class="form-label">
+                <i class="fas fa-lock"></i> Konfirmasi Password Baru <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                type="password" 
+                class="form-input" 
+                id="confirm_password" 
+                name="confirm_password" 
+                placeholder="Ketik ulang password baru"
+                required
+                minlength="6"
+            >
+        </div>
 
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Simpan Password Baru
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Help Section -->
-<div class="card mt-4">
-    <div class="card-header">
-        <i class="fas fa-question-circle"></i> Bantuan
-    </div>
-    <div class="card-body">
-        <h6>Petunjuk Penggunaan Dashboard:</h6>
-        <ul class="list-unstyled">
-            <li><i class="fas fa-check-circle text-success"></i> <strong>Dashboard:</strong> Lihat statistik umum dan user terbaru</li>
-            <li><i class="fas fa-check-circle text-success"></i> <strong>Kelola Users:</strong> Tampilkan, lihat detail, atau hapus user</li>
-            <li><i class="fas fa-check-circle text-success"></i> <strong>Data Kulit:</strong> Kelola semua riwayat pemeriksaan kulit</li>
-            <li><i class="fas fa-check-circle text-success"></i> <strong>Pengaturan:</strong> Ubah password admin</li>
-        </ul>
-
-        <h6 class="mt-4">Keamanan:</h6>
-        <ul class="list-unstyled">
-            <li><i class="fas fa-shield-alt text-warning"></i> Selalu gunakan password yang kuat</li>
-            <li><i class="fas fa-shield-alt text-warning"></i> Jangan bagikan password Anda kepada orang lain</li>
-            <li><i class="fas fa-shield-alt text-warning"></i> Logout setelah selesai menggunakan dashboard</li>
-        </ul>
-    </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Simpan Password Baru
+        </button>
+    </form>
 </div>
 
 <!-- Logout Button -->
-<div class="mt-4">
-    <a href="{{ url_for('web_logout') }}" class="btn btn-danger btn-lg w-100">
+<div style="margin-top: 32px;">
+    <a href="{{ url_for('web_logout') }}" class="btn btn-danger btn-lg btn-block" style="width: 100%; justify-content: center;">
         <i class="fas fa-sign-out-alt"></i> Logout
     </a>
 </div>

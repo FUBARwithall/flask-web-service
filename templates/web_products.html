@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Kelola Artikel - Admin{% endblock %}
+{% block title %}Kelola Produk - Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -31,48 +31,50 @@
 
 {% block content %}
 <div class="page-header">
-    <h1><i class="fas fa-newspaper"></i> Kelola Artikel</h1>
+    <h1><i class="fas fa-newspaper"></i> Kelola Produk</h1>
 </div>
 
 <div class="header-card">
     <div class="header-info">
-        <h3>Daftar Artikel</h3>
-        <p>Kelola konten artikel yang tampil di aplikasi</p>
+        <h3>Daftar Produk</h3>
+        <p>Kelola konten produk yang tampil di aplikasi</p>
     </div>
-    <a href="{{ url_for('web_create_article') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Buat Artikel Baru
+    <a href="{{ url_for('web_create_product') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Buat Produk Baru
     </a>
 </div>
 
 <div class="table-card">
-    {% if articles %}
+    {% if products %}
     <table class="table">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Gambar</th>
-                <th>Judul</th>
-                <th>Deskripsi</th>
-                <th>Tanggal</th>
+                <th>Image</th>
+                <th>Merek</th>
+                <th>Nama</th>
+                <th>Harga</th>
+                <th>Kategori penyakit</th>
                 <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
-            {% for a in articles %}
-            <tr data-url="{{ url_for('web_edit_article', article_id=a.id) }}" class="clickable-row">
-                <td>#{{ a.id }}</td>
+            {% for p in products %}
+            <tr data-url="{{ url_for('web_edit_product', product_id=p.id) }}" class="clickable-row">
+                <td>#{{ p.id }}</td>
                 <td>
-                    {% if a.image %}
-                    <img src="{{ url_for('uploaded_file', filename=a.image) }}" alt="Gambar Artikel" class="image-thumbnail">
+                    {% if p.image %}
+                    <img src="{{ url_for('uploaded_file', filename=p.image) }}" alt="Gambar Produk" class="image-thumbnail">
                     {% else %}
                     <span style="color: #94a3b8;">Tidak ada</span>
                     {% endif %}
                 </td>
-                <td><strong>{{ a.title }}</strong></td>
-                <td style="color: #64748b; font-size: 0.9rem;">{{ a.description[:100] }}{% if a.description|length > 100 %}...{% endif %}</td>
-                <td style="font-size: 0.85rem; color: #94a3b8;">{{ a.created_at }}</td>
+                <td><strong>{{ p.merek }}</strong></td>
+                <td><strong>{{ p.nama }}</strong></td>
+                <td><strong>{{ p.harga }}</strong></td>
+                <td><strong>{{ p.kategori_penyakit }}</strong></td>
                 <td>
-                    <form action="{{ url_for('web_delete_article', article_id=a.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus artikel ini?');">
+                    <form action="{{ url_for('web_delete_product', product_id=p.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus produk ini?');">
                         <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                     </form>
                 </td>
@@ -83,7 +85,7 @@
     {% else %}
     <div class="empty-state">
         <i class="fas fa-inbox"></i>
-        <p>Belum ada artikel</p>
+        <p>Belum ada produk</p>
     </div>
     {% endif %}
 </div>

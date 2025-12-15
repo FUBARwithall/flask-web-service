@@ -4,18 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Skin Health Manager - Admin Dashboard{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #0066CC;
-            --secondary-color: #6C63FF;
-            --success-color: #27AE60;
-            --danger-color: #E74C3C;
-            --warning-color: #F39C12;
-            --light-bg: #F9F6FF;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -23,222 +13,304 @@
         }
 
         body {
-            background-color: var(--light-bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%);
+            min-height: 100vh;
         }
 
+        /* Navbar */
         .navbar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            padding: 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .navbar-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            max-width: 100%;
         }
 
         .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
             font-weight: 700;
+            color: #1e40af;
+            text-decoration: none;
+        }
+
+        .navbar-brand i {
+            color: #3b82f6;
+            font-size: 1.6rem;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-toggle {
+            display: none;
+            background: none;
+            border: none;
             font-size: 1.5rem;
+            color: #475569;
+            cursor: pointer;
+            padding: 8px;
         }
 
-        .sidebar {
-            background: white;
-            min-height: 100vh;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-            padding: 20px 0;
+        .user-dropdown {
+            position: relative;
         }
 
-        .sidebar .nav-link {
-            color: #555;
-            padding: 12px 20px;
-            margin: 5px 10px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .main-content {
-            padding: 30px;
-            min-height: 100vh;
-        }
-
-        .card {
-            border: none;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        .user-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            border-radius: 10px 10px 0 0;
-            padding: 20px;
-            font-weight: 600;
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 25px;
-        }
-
-        .stat-card .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .stat-card .stat-label {
-            color: #777;
-            margin-top: 10px;
+            color: #475569;
+            font-size: 0.9rem;
             font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .table {
-            font-size: 0.95rem;
+        .user-button:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
         }
 
-        .table thead th {
-            background-color: var(--light-bg);
-            border: none;
-            color: var(--primary-color);
-            font-weight: 600;
-            padding: 15px;
+        .user-button i {
+            color: #94a3b8;
         }
 
-        .table tbody tr {
-            border-bottom: 1px solid #eee;
-            transition: background-color 0.3s ease;
+        .dropdown-content {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
         }
 
-        .table tbody tr:hover {
-            background-color: #f9f6ff;
+        .dropdown-content.show {
+            display: block;
         }
 
-        .badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 500;
-        }
-
-        .badge-success {
-            background-color: rgba(39, 174, 96, 0.2);
-            color: var(--success-color);
-        }
-
-        .badge-warning {
-            background-color: rgba(243, 156, 18, 0.2);
-            color: var(--warning-color);
-        }
-
-        .badge-danger {
-            background-color: rgba(231, 76, 60, 0.2);
-            color: var(--danger-color);
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            border: none;
-            border-radius: 8px;
-            padding: 8px 20px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background-color: #0052a3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
-        }
-
-        .btn-sm {
-            padding: 5px 12px;
-            font-size: 0.85rem;
-        }
-
-        .alert {
-            border: none;
-            border-radius: 8px;
-            padding: 15px 20px;
-        }
-
-        .alert-success {
-            background-color: rgba(39, 174, 96, 0.1);
-            color: var(--success-color);
-        }
-
-        .alert-danger {
-            background-color: rgba(231, 76, 60, 0.1);
-            color: var(--danger-color);
-        }
-
-        .alert-warning {
-            background-color: rgba(243, 156, 18, 0.1);
-            color: var(--warning-color);
-        }
-
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            padding: 10px 15px;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.15);
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 30px;
+        .dropdown-item {
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 12px 16px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.2s ease;
         }
 
-        .section-title i {
-            font-size: 2rem;
+        .dropdown-item:first-child {
+            border-radius: 12px 12px 0 0;
         }
 
-        .page-header {
+        .dropdown-item:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+        }
+
+        .dropdown-item i {
+            color: #94a3b8;
+            width: 18px;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 4px 0;
+        }
+
+        /* Layout Container */
+        .layout-container {
+            display: flex;
+            min-height: calc(100vh - 65px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
             background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+            padding: 24px 16px;
+            transition: transform 0.3s ease;
         }
 
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .nav-link:hover {
+            background: #f8fafc;
+            color: #3b82f6;
+        }
+
+        .nav-link:hover i {
+            color: #3b82f6;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+        }
+
+        .nav-link.active i {
+            color: #3b82f6;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            overflow-x: hidden;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+            padding: 4px;
+            font-size: 1rem;
+        }
+
+        .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* Mobile Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .main-content {
-                padding: 20px;
+            .navbar-container {
+                padding: 16px 20px;
+            }
+
+            .navbar-toggle {
+                display: block;
             }
 
             .sidebar {
                 position: fixed;
-                left: -100%;
-                width: 70%;
-                transition: left 0.3s ease;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                transform: translateX(-100%);
                 z-index: 1000;
+                box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
             }
 
             .sidebar.show {
-                left: 0;
+                transform: translateX(0);
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .user-button span {
+                display: none;
             }
         }
     </style>
@@ -246,76 +318,127 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('web_dashboard') }}">
-                <i class="fas fa-spa"></i> Skin Health Manager
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <button class="navbar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i> {{ session.get('admin_name', 'Admin') }}
+            
+            <a href="{{ url_for('web_dashboard') }}" class="navbar-brand">
+                <i class="fas fa-spa"></i>
+                <span>Skin Health Manager</span>
+            </a>
+
+            <div class="navbar-menu">
+                <div class="user-dropdown">
+                    <button class="user-button" id="userDropdownBtn">
+                        <i class="fas fa-user-circle"></i>
+                        <span>{{ session.get('admin_name', 'Admin') }}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                    </button>
+                    <div class="dropdown-content" id="userDropdown">
+                        <a href="{{ url_for('web_settings') }}" class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            Pengaturan
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('web_settings') }}"><i class="fas fa-cog"></i> Pengaturan</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('web_logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('web_logout') }}" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 sidebar">
-                <div class="nav flex-column nav-pills">
-                    <a class="nav-link {% if request.endpoint == 'web_dashboard' %}active{% endif %}" href="{{ url_for('web_dashboard') }}">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
-                    </a>
-                    <a class="nav-link {% if request.endpoint == 'web_users' %}active{% endif %}" href="{{ url_for('web_users') }}">
-                        <i class="fas fa-users"></i> Kelola Users
-                    </a>
-                    <a class="nav-link {% if request.endpoint == 'web_articles' %}active{% endif %}" href="{{ url_for('web_articles') }}">
-                        <i class="fas fa-newspaper"></i> Kelola Artikel
-                    </a>
-                    <a class="nav-link {% if request.endpoint == 'web_skin_data' %}active{% endif %}" href="{{ url_for('web_skin_data') }}">
-                        <i class="fas fa-heartbeat"></i> Data Kulit
-                    </a>
-                    <a class="nav-link {% if request.endpoint == 'web_settings' %}active{% endif %}" href="{{ url_for('web_settings') }}">
-                        <i class="fas fa-cog"></i> Pengaturan
-                    </a>
-                </div>
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Layout Container -->
+    <div class="layout-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a class="nav-link {% if request.endpoint == 'web_dashboard' %}active{% endif %}" href="{{ url_for('web_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-link {% if request.endpoint == 'web_users' %}active{% endif %}" href="{{ url_for('web_users') }}">
+                    <i class="fas fa-users"></i>
+                    <span>Kelola Users</span>
+                </a>
+                <a class="nav-link {% if request.endpoint == 'web_articles' %}active{% endif %}" href="{{ url_for('web_articles') }}">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Kelola Artikel</span>
+                </a>
+                <a class="nav-link {% if request.endpoint == 'web_products' %}active{% endif %}" href="{{ url_for('web_products') }}">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Kelola Product</span>
+                </a>
+                <a class="nav-link {% if request.endpoint == 'web_skin_data' %}active{% endif %}" href="{{ url_for('web_skin_data') }}">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Data Kulit</span>
+                </a>
+                <hr class="row-divider">
+                <a class="nav-link {% if request.endpoint == 'web_settings' %}active{% endif %}" href="{{ url_for('web_settings') }}">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                </a>
             </nav>
+        </aside>
 
-            <!-- Main Content -->
-            <main class="col-md-9 col-lg-10 main-content">
-                <!-- Alerts -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'danger' else 'warning' }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'danger' else 'warning' }}">
+                            <span>{{ message }}</span>
+                            <button type="button" class="btn-close" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-                <!-- Page Content -->
-                {% block content %}{% endblock %}
-            </main>
-        </div>
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        // User dropdown toggle
+        const userDropdownBtn = document.getElementById('userDropdownBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            userDropdown.classList.remove('show');
+        });
+
+        // Mobile sidebar toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
