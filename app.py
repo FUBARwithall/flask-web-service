@@ -422,6 +422,195 @@ def delete_article(article_id):
         print(f"Error in delete_article: {e}")
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
+# ==================== ARTICLES FAVORITE ====================
+
+@app.route('/api/articles/<int:article_id>/favorite', methods=['POST'])
+def favorite_article(article_id):
+    user_id = request.json.get('user_id')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT IGNORE INTO article_favorites (user_id, article_id)
+        VALUES (%s, %s)
+    """, (user_id, article_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'status': 'success'})
+
+
+@app.route('/api/articles/<int:article_id>/favorite', methods=['DELETE'])
+def unfavorite_article(article_id):
+    user_id = request.json.get('user_id')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM article_favorites
+        WHERE user_id = %s AND article_id = %s
+    """, (user_id, article_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'status': 'success'})
+
+
+@app.route('/api/articles/<int:article_id>/favorite/status', methods=['GET'])
+def article_favorite_status(article_id):
+    user_id = request.args.get('user_id')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id FROM article_favorites
+        WHERE user_id = %s AND article_id = %s
+        LIMIT 1
+    """, (user_id, article_id))
+
+    is_favorite = cursor.fetchone() is not None
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({'favorite': is_favorite})
+
+
+@app.route('/api/articles/favorites', methods=['GET'])
+def get_favorite_articles():
+    try:
+        user_id = int(request.args.get('user_id'))
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT a.*
+            FROM articles a
+            JOIN article_favorites af ON af.article_id = a.id
+            WHERE af.user_id = %s
+            ORDER BY af.id DESC
+        """, (user_id,))
+
+        articles = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'data': articles
+        })
+
+    except Exception as e:
+        print("ERROR FAVORITE ARTICLES:", e)
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+# ==================== PRODUCTS FAVORITE ====================
+
+@app.route('/api/products/<int:product_id>/favorite', methods=['POST'])
+def favorite_product(product_id):
+    user_id = request.json.get('user_id')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT IGNORE INTO product_favorites (user_id, product_id)
+        VALUES (%s, %s)
+    """, (user_id, product_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'status': 'success'})
+
+
+@app.route('/api/products/<int:product_id>/favorite', methods=['DELETE'])
+def unfavorite_product(product_id):
+    user_id = request.json.get('user_id')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM product_favorites
+        WHERE user_id = %s AND product_id = %s
+    """, (user_id, product_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'status': 'success'})
+
+
+@app.route('/api/products/<int:product_id>/favorite/status', methods=['GET'])
+def product_favorite_status(product_id):
+    user_id = request.args.get('user_id')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id FROM product_favorites
+        WHERE user_id = %s AND product_id = %s
+        LIMIT 1
+    """, (user_id, product_id))
+
+    is_favorite = cursor.fetchone() is not None
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({'favorite': is_favorite})
+
+
+@app.route('/api/products/favorites', methods=['GET'])
+def get_favorite_products():
+    try:
+        user_id = int(request.args.get('user_id'))
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT p.*
+            FROM products p
+            JOIN product_favorites pf ON pf.product_id = p.id
+            WHERE pf.user_id = %s
+            ORDER BY pf.id DESC
+        """, (user_id,))
+
+        products = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'data': products
+        })
+
+    except Exception as e:
+        print("ERROR FAVORITE PRODUCTS:", e)
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
 # ==================== PRODUCTS API ====================
 
 @app.route('/api/products', methods=['GET'])
