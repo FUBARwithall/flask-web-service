@@ -622,7 +622,7 @@ def get_products():
             return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
 
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products ORDER BY id DESC")
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi FROM products ORDER BY id DESC")
         products = cursor.fetchall()
 
         cursor.close()
@@ -643,7 +643,7 @@ def get_product(product_id):
             return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
 
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products WHERE id = %s", (product_id,))
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi FROM products WHERE id = %s", (product_id,))
         product = cursor.fetchone()
 
         cursor.close()
@@ -663,13 +663,19 @@ def create_product():
     """Buat product baru (sebaiknya dibatasi untuk admin)"""
     try:
         data = request.get_json() or {}
-        merek = data.get('title', '').strip()
-        nama = data.get('description', '').strip()
-        harga = data.get('harga', '').strip()
+        merek = data.get('merek', '').strip()
+        nama = data.get('nama', '').strip()
+        harga = data.get('harga')
         kategori_penyakit = data.get('kategori_penyakit', '').strip()
         image = data.get('image', '').strip() if data.get('image') else None
+        deskripsi = data.get('deskripsi', '').strip() if data.get('deskripsi') else None
+        dosis = data.get('dosis', '').strip() if data.get('dosis') else None
+        efek_samping = data.get('efek_samping', '').strip() if data.get('efek_samping') else None
+        komposisi = data.get('komposisi', '').strip() if data.get('komposisi') else None
+        manufaktur = data.get('manufaktur', '').strip() if data.get('manufaktur') else None
+        nomor_registrasi = data.get('nomor_registrasi', '').strip() if data.get('nomor_registrasi') else None
 
-        if not merek or not nama or not harga or not kategori_penyakit:
+        if not merek or not nama or harga is None or not kategori_penyakit:
             return jsonify({'status': 'error', 'message': 'Field wajib diisi'}), 400
 
         conn = get_db_connection()
@@ -677,14 +683,14 @@ def create_product():
             return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
 
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO products (merek, nama, harga, kategori_penyakit, image) VALUES (%s, %s, %s, %s, %s)", (merek, nama, harga, kategori_penyakit, image))
+        cursor.execute("INSERT INTO products (merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi))
         conn.commit()
         product_id = cursor.lastrowid
 
         cursor.close()
         conn.close()
 
-        return jsonify({'status': 'success', 'message': 'Product dibuat', 'data': {'id': product_id, 'merek': merek, 'nama': nama, 'harga': harga, 'kategori_penyakit': kategori_penyakit, 'image': image}}), 201
+        return jsonify({'status': 'success', 'message': 'Product dibuat', 'data': {'id': product_id, 'merek': merek, 'nama': nama, 'harga': harga, 'kategori_penyakit': kategori_penyakit, 'image': image, 'deskripsi': deskripsi, 'dosis': dosis, 'efek_samping': efek_samping, 'komposisi': komposisi, 'manufaktur': manufaktur, 'nomor_registrasi': nomor_registrasi}}), 201
     except Exception as e:
         print(f"Error in create_product: {e}")
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
@@ -695,13 +701,19 @@ def update_product(product_id):
     """Update product (sebaiknya dibatasi untuk admin)"""
     try:
         data = request.get_json() or {}
-        merek = data.get('title', '').strip()
-        nama = data.get('description', '').strip()
-        harga = data.get('harga', '').strip()
+        merek = data.get('merek', '').strip()
+        nama = data.get('nama', '').strip()
+        harga = data.get('harga')
         kategori_penyakit = data.get('kategori_penyakit', '').strip()
         image = data.get('image', '').strip() if data.get('image') else None
+        deskripsi = data.get('deskripsi', '').strip() if data.get('deskripsi') else None
+        dosis = data.get('dosis', '').strip() if data.get('dosis') else None
+        efek_samping = data.get('efek_samping', '').strip() if data.get('efek_samping') else None
+        komposisi = data.get('komposisi', '').strip() if data.get('komposisi') else None
+        manufaktur = data.get('manufaktur', '').strip() if data.get('manufaktur') else None
+        nomor_registrasi = data.get('nomor_registrasi', '').strip() if data.get('nomor_registrasi') else None
 
-        if not merek or not nama or not harga or not kategori_penyakit:
+        if not merek or not nama or harga is None or not kategori_penyakit:
             return jsonify({'status': 'error', 'message': 'Field wajib diisi'}), 400
 
         conn = get_db_connection()
@@ -709,7 +721,7 @@ def update_product(product_id):
             return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
 
         cursor = conn.cursor()
-        cursor.execute("UPDATE products SET merek = %s, nama = %s, harga = %s, kategori_penyakit = %s, image = %s WHERE id = %s", (merek, nama, harga, kategori_penyakit, image, product_id))
+        cursor.execute("UPDATE products SET merek = %s, nama = %s, harga = %s, kategori_penyakit = %s, image = %s, deskripsi = %s, dosis = %s, efek_samping = %s, komposisi = %s, manufaktur = %s, nomor_registrasi = %s WHERE id = %s", (merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi, product_id))
         conn.commit()
 
         cursor.close()
@@ -928,6 +940,43 @@ def web_delete_user(user_id):
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_users'))
 
+@app.route('/web/users/bulk-delete', methods=['POST'])
+@login_required
+def web_bulk_delete_users():
+    """Bulk hapus users dari admin dashboard"""
+    try:
+        user_ids = request.form.getlist('user_ids')
+
+        if not user_ids:
+            flash('Tidak ada user yang dipilih', 'warning')
+            return redirect(url_for('web_users'))
+
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_users'))
+
+        cursor = conn.cursor()
+
+        # Delete related skin_data first
+        placeholders = ','.join(['%s'] * len(user_ids))
+        cursor.execute(f"DELETE FROM skin_data WHERE user_id IN ({placeholders})", user_ids)
+
+        # Then delete users
+        cursor.execute(f"DELETE FROM users WHERE id IN ({placeholders})", user_ids)
+        deleted_count = cursor.rowcount
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        flash(f'{deleted_count} user berhasil dihapus', 'success')
+        return redirect(url_for('web_users'))
+    except Exception as e:
+        print(f"Error in web_bulk_delete_users: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_users'))
+
 # ==================== WEB ARTICLES ====================
 
 @app.route('/web/articles')
@@ -1088,7 +1137,41 @@ def web_delete_article(article_id):
         print(f"Error in web_delete_article: {e}")
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_articles'))
-    
+
+@app.route('/web/articles/bulk-delete', methods=['POST'])
+@login_required
+def web_bulk_delete_articles():
+    """Bulk hapus articles dari admin dashboard"""
+    try:
+        article_ids = request.form.getlist('article_ids')
+
+        if not article_ids:
+            flash('Tidak ada artikel yang dipilih', 'warning')
+            return redirect(url_for('web_articles'))
+
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_articles'))
+
+        cursor = conn.cursor()
+
+        # Create placeholders for the IN clause
+        placeholders = ','.join(['%s'] * len(article_ids))
+        cursor.execute(f"DELETE FROM articles WHERE id IN ({placeholders})", article_ids)
+        deleted_count = cursor.rowcount
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        flash(f'{deleted_count} artikel berhasil dihapus', 'success')
+        return redirect(url_for('web_articles'))
+    except Exception as e:
+        print(f"Error in web_bulk_delete_articles: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_articles'))
+
 # ==================== WEB PRODUCTS ====================
     
 @app.route('/web/products')
@@ -1102,7 +1185,7 @@ def web_products():
             return redirect(url_for('web_dashboard'))
 
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products ORDER BY id DESC")
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi FROM products ORDER BY id DESC")
         products = cursor.fetchall()
 
         cursor.close()
@@ -1124,6 +1207,12 @@ def web_create_product():
         nama = request.form.get('nama', '').strip()
         harga = request.form.get('harga', '').strip()
         kategori_penyakit = request.form.get('kategori_penyakit', '').strip()
+        deskripsi = request.form.get('deskripsi', '').strip() or None
+        dosis = request.form.get('dosis', '').strip() or None
+        efek_samping = request.form.get('efek_samping', '').strip() or None
+        komposisi = request.form.get('komposisi', '').strip() or None
+        manufaktur = request.form.get('manufaktur', '').strip() or None
+        nomor_registrasi = request.form.get('nomor_registrasi', '').strip() or None
         
         image_filename = None
         if 'image' in request.files:
@@ -1147,7 +1236,7 @@ def web_create_product():
                 return redirect(url_for('web_products'))
 
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO products (merek, nama, harga, kategori_penyakit, image) VALUES (%s, %s, %s, %s, %s)", (merek, nama, harga, kategori_penyakit, image_filename))
+            cursor.execute("INSERT INTO products (merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (merek, nama, harga, kategori_penyakit, image_filename, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi))
             conn.commit()
 
             cursor.close()
@@ -1178,6 +1267,12 @@ def web_edit_product(product_id):
             nama = request.form.get('nama', '').strip()
             harga = request.form.get('harga', '').strip()
             kategori_penyakit = request.form.get('kategori_penyakit', '').strip()
+            deskripsi = request.form.get('deskripsi', '').strip() or None
+            dosis = request.form.get('dosis', '').strip() or None
+            efek_samping = request.form.get('efek_samping', '').strip() or None
+            komposisi = request.form.get('komposisi', '').strip() or None
+            manufaktur = request.form.get('manufaktur', '').strip() or None
+            nomor_registrasi = request.form.get('nomor_registrasi', '').strip() or None
             
             image_filename = None
             if 'image' in request.files:
@@ -1201,7 +1296,7 @@ def web_edit_product(product_id):
                 conn.close()
                 return redirect(url_for('web_edit_product', product_id=product_id))
 
-            cursor.execute("UPDATE products SET merek = %s, nama = %s, harga = %s, kategori_penyakit = %s, image = %s WHERE id = %s", (merek, nama, harga, kategori_penyakit, image_filename, product_id))
+            cursor.execute("UPDATE products SET merek = %s, nama = %s, harga = %s, kategori_penyakit = %s, image = %s, deskripsi = %s, dosis = %s, efek_samping = %s, komposisi = %s, manufaktur = %s, nomor_registrasi = %s WHERE id = %s", (merek, nama, harga, kategori_penyakit, image_filename, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi, product_id))
             conn.commit()
 
             cursor.close()
@@ -1210,7 +1305,7 @@ def web_edit_product(product_id):
             flash('Produk berhasil diperbarui', 'success')
             return redirect(url_for('web_products'))
 
-        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image FROM products WHERE id = %s", (product_id,))
+        cursor.execute("SELECT id, merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi FROM products WHERE id = %s", (product_id,))
         product = cursor.fetchone()
 
         cursor.close()
@@ -1250,7 +1345,41 @@ def web_delete_product(product_id):
         print(f"Error in web_delete_article: {e}")
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_products'))
-    
+
+@app.route('/web/products/bulk-delete', methods=['POST'])
+@login_required
+def web_bulk_delete_products():
+    """Bulk hapus products dari admin dashboard"""
+    try:
+        product_ids = request.form.getlist('product_ids')
+
+        if not product_ids:
+            flash('Tidak ada produk yang dipilih', 'warning')
+            return redirect(url_for('web_products'))
+
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_products'))
+
+        cursor = conn.cursor()
+
+        # Create placeholders for the IN clause
+        placeholders = ','.join(['%s'] * len(product_ids))
+        cursor.execute(f"DELETE FROM products WHERE id IN ({placeholders})", product_ids)
+        deleted_count = cursor.rowcount
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        flash(f'{deleted_count} produk berhasil dihapus', 'success')
+        return redirect(url_for('web_products'))
+    except Exception as e:
+        print(f"Error in web_bulk_delete_products: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_products'))
+
 # ==================== WEB SKIN DATA ====================
 
 @app.route('/web/skin-data')

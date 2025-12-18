@@ -80,7 +80,13 @@ CREATE TABLE `products` (
   `nama` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Product name',
   `harga` decimal(10,2) NOT NULL COMMENT 'Price',
   `kategori_penyakit` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Disease category',
-  `image` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Image path or URL'
+  `image` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Image path or URL',
+  `deskripsi` text COLLATE utf8mb4_unicode_ci COMMENT 'Product description',
+  `dosis` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Dosage instructions',
+  `efek_samping` VARCHAR(255) COLLATE utf8mb4_unicode_ci COMMENT 'Side effects',
+  `komposisi` text COLLATE utf8mb4_unicode_ci COMMENT 'Product composition',
+  `manufaktur` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Manufacturer',
+  `nomor_registrasi` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Registration number'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Products table';
 
 --

@@ -8,7 +8,6 @@
     .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #334155; font-size: 0.95rem; }
     .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; font-family: inherit; transition: all 0.2s ease; }
     .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-    .form-input.textarea { resize: vertical; min-height: 200px; }
     .image-preview { width: 100px; height: 100px; object-fit: cover; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px; }
     .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
     .btn-primary { background: #3b82f6; color: white; }
@@ -21,6 +20,38 @@
     .page-header i { color: #3b82f6; }
     .helper-text { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- TinyMCE CDN -->
+<script src="https://cdn.tiny.cloud/1/6mn6lhcz6vkz37n0aw2s81dxjuqu4o3dbarzka6nnssc0mlw/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    tinymce.init({
+        selector: '#description',
+        height: 400,
+        menubar: false,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+            'bold italic backcolor | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist outdent indent | ' +
+            'removeformat | help',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px }',
+        skin: 'oxide',
+        content_css: false,
+        setup: function (editor) {
+            editor.on('change', function () {
+                editor.save();
+            });
+        }
+    });
+});
+</script>
 {% endblock %}
 
 {% block content %}
@@ -37,7 +68,7 @@
 
         <div class="form-group">
             <label class="form-label" for="description">Isi / Deskripsi <span style="color: #ef4444;">*</span></label>
-            <textarea id="description" name="description" class="form-input textarea" required>{{ article.description if article else '' }}</textarea>
+            <textarea id="description" name="description" required>{{ article.description if article else '' }}</textarea>
         </div>
 
         <div class="form-group">

@@ -62,6 +62,36 @@
             <div class="helper-text">Upload gambar produk (JPG, PNG, GIF). Biarkan kosong jika tidak ingin mengubah gambar.</div>
         </div>
 
+        <div class="form-group">
+            <label class="form-label" for="deskripsi">Deskripsi <span style="color: #ef4444;">*</span></label>
+            <textarea id="deskripsi" name="deskripsi" class="form-input textarea" required>{{ product.deskripsi if product else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="dosis">Dosis <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="dosis" name="dosis" class="form-input" value="{{ product.dosis if product else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="efek_samping">Efek Samping <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="efek_samping" name="efek_samping" class="form-input" value="{{ product.efek_samping if product else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="komposisi">Komposisi <span style="color: #ef4444;">*</span></label>
+            <textarea id="komposisi" name="komposisi" class="form-input textarea" required>{{ product.komposisi if product else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="manufaktur">Manufaktur <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="manufaktur" name="manufaktur" class="form-input" value="{{ product.manufaktur if product else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="nomor_registrasi">Nomor Registrasi <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="nomor_registrasi" name="nomor_registrasi" class="form-input" value="{{ product.nomor_registrasi if product else '' }}" required>
+        </div>
+
         <div style="display: flex; gap: 12px; margin-top: 32px;">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
             <a href="{{ url_for('web_products') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
