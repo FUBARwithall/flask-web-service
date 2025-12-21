@@ -1,4 +1,5 @@
-Flask==3.0.0
-flask-cors==4.0.0
-mysql-connector-python==8.2.0
-Werkzeug==3.0.1
+Flask==3.0.3
+flask-cors==4.0.1
+mysql-connector-python==8.3.0
+Werkzeug==3.0.4
+resend==0.7.0
