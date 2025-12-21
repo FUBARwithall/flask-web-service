@@ -60,7 +60,7 @@
             </thead>
             <tbody>
                 {% for record in skin_data %}
-                <tr data-url="{{ url_for('web_user_detail', user_id=record.user_id) }}" class="clickable-row">
+                <tr data-url="{{ url_for('web_admin.web_user_detail', user_id=record.user_id) }}" class="clickable-row">
                     <td>#{{ record.id }}</td>
                     <td><strong>{{ record.name }}</strong></td>
                     <td> {{ record.created_at }} </td>
@@ -71,7 +71,7 @@
                     </td>
                     <td>{{ record.notes if record.notes else '-' }}</td>
                     <td>
-                        <form method="POST" action="{{ url_for('web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
+                        <form method="POST" action="{{ url_for('web_admin.web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
                             <button type="submit" class="btn btn-danger" title="Hapus Record">
                                 <i class="fas fa-trash"></i>
                             </button>

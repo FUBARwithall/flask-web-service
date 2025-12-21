@@ -26,7 +26,7 @@ def uploaded_file(filename):
 
 # ==================== WEB LOGIN ====================
 
-@web_admin_bp.route('/web/login', methods=['GET', 'POST'])
+@web_admin_bp.route('/login', methods=['GET', 'POST'])
 def web_login():
     """Halaman login untuk admin"""
     if request.method == 'POST':
@@ -64,7 +64,7 @@ def web_login():
 
 # ==================== WEB LOGOUT ====================
 
-@web_admin_bp.route('/web/logout')
+@web_admin_bp.route('/logout')
 def web_logout():
     """Logout dari admin"""
     session.clear()
@@ -73,8 +73,7 @@ def web_logout():
 
 # ==================== WEB DASHBOARD ====================
 
-@web_admin_bp.route('/web')
-@web_admin_bp.route('/web/dashboard')
+@web_admin_bp.route('/dashboard')
 @login_required
 def web_dashboard():
     """Dashboard utama - menampilkan statistik"""
@@ -113,7 +112,7 @@ def web_dashboard():
     
 # ==================== WEB USERS ====================
 
-@web_admin_bp.route('/web/users')
+@web_admin_bp.route('/users')
 @login_required
 def web_users():
     """Halaman manajemen users"""
@@ -136,7 +135,7 @@ def web_users():
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_dashboard'))
 
-@web_admin_bp.route('/web/users/<int:user_id>')
+@web_admin_bp.route('/users/<int:user_id>')
 @login_required
 def web_user_detail(user_id):
     """Halaman detail user"""
@@ -172,7 +171,7 @@ def web_user_detail(user_id):
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_users'))
 
-@web_admin_bp.route('/web/users/<int:user_id>/delete', methods=['POST'])
+@web_admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 def web_delete_user(user_id):
     """Hapus user"""
@@ -199,7 +198,7 @@ def web_delete_user(user_id):
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_users'))
 
-@web_admin_bp.route('/web/users/bulk-delete', methods=['POST'])
+@web_admin_bp.route('/users/bulk-delete', methods=['POST'])
 @login_required
 def web_bulk_delete_users():
     """Bulk hapus users dari admin dashboard"""
@@ -238,7 +237,7 @@ def web_bulk_delete_users():
 
 # ==================== WEB ARTICLES ====================
 
-@web_admin_bp.route('/web/articles')
+@web_admin_bp.route('/articles')
 @login_required
 def web_articles():
     """Halaman manajemen artikel"""
@@ -262,7 +261,7 @@ def web_articles():
         return redirect(url_for('web_admin.web_dashboard'))
 
 
-@web_admin_bp.route('/web/articles/create', methods=['GET', 'POST'])
+@web_admin_bp.route('/articles/create', methods=['GET', 'POST'])
 @login_required
 def web_create_article():
     """Buat artikel baru melalui admin dashboard"""
@@ -310,7 +309,7 @@ def web_create_article():
     return render_template('web_article_form.html', article=None)
 
 
-@web_admin_bp.route('/web/articles/<int:article_id>/edit', methods=['GET', 'POST'])
+@web_admin_bp.route('/articles/<int:article_id>/edit', methods=['GET', 'POST'])
 @login_required
 def web_edit_article(article_id):
     """Edit artikel melalui admin dashboard"""
@@ -373,7 +372,7 @@ def web_edit_article(article_id):
         return redirect(url_for('web_admin.web_articles'))
 
 
-@web_admin_bp.route('/web/articles/<int:article_id>/delete', methods=['POST'])
+@web_admin_bp.route('/articles/<int:article_id>/delete', methods=['POST'])
 @login_required
 def web_delete_article(article_id):
     """Hapus artikel dari admin dashboard"""
@@ -397,7 +396,7 @@ def web_delete_article(article_id):
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_articles'))
 
-@web_admin_bp.route('/web/articles/bulk-delete', methods=['POST'])
+@web_admin_bp.route('/articles/bulk-delete', methods=['POST'])
 @login_required
 def web_bulk_delete_articles():
     """Bulk hapus articles dari admin dashboard"""
@@ -433,7 +432,7 @@ def web_bulk_delete_articles():
 
 # ==================== WEB PRODUCTS ====================
     
-@web_admin_bp.route('/web/products')
+@web_admin_bp.route('/products')
 @login_required
 def web_products():
     """Halaman manajemen product"""
@@ -457,7 +456,7 @@ def web_products():
         return redirect(url_for('web_admin.web_dashboard'))
 
 
-@web_admin_bp.route('/web/products/create', methods=['GET', 'POST'])
+@web_admin_bp.route('/products/create', methods=['GET', 'POST'])
 @login_required
 def web_create_product():
     """Buat product baru melalui admin dashboard"""
@@ -510,7 +509,7 @@ def web_create_product():
 
     return render_template('web_product_form.html', product=None)
 
-@web_admin_bp.route('/web/products/<int:product_id>/edit', methods=['GET', 'POST'])
+@web_admin_bp.route('/products/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
 def web_edit_product(product_id):
     """Edit product melalui admin dashboard"""
@@ -581,7 +580,7 @@ def web_edit_product(product_id):
         return redirect(url_for('web_admin.web_products'))
 
 
-@web_admin_bp.route('/web/products/<int:product_id>/delete', methods=['POST'])
+@web_admin_bp.route('/products/<int:product_id>/delete', methods=['POST'])
 @login_required
 def web_delete_product(product_id):
     """Hapus product dari admin dashboard"""
@@ -605,7 +604,7 @@ def web_delete_product(product_id):
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_products'))
 
-@web_admin_bp.route('/web/products/bulk-delete', methods=['POST'])
+@web_admin_bp.route('/products/bulk-delete', methods=['POST'])
 @login_required
 def web_bulk_delete_products():
     """Bulk hapus products dari admin dashboard"""
@@ -641,7 +640,7 @@ def web_bulk_delete_products():
 
 # ==================== WEB SKIN DATA ====================
 
-@web_admin_bp.route('/web/skin-data')
+@web_admin_bp.route('/skin-data')
 @login_required
 def web_skin_data():
     """Halaman manajemen data kulit"""
@@ -669,7 +668,7 @@ def web_skin_data():
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_dashboard'))
 
-@web_admin_bp.route('/web/skin-data/<int:record_id>/delete', methods=['POST'])
+@web_admin_bp.route('/skin-data/<int:record_id>/delete', methods=['POST'])
 @login_required
 def web_delete_skin_record(record_id):
     """Hapus record kulit"""
@@ -695,7 +694,7 @@ def web_delete_skin_record(record_id):
     
 # ==================== WEB SETTINGS ====================
 
-@web_admin_bp.route('/web/settings')
+@web_admin_bp.route('/settings')
 @login_required
 def web_settings():
     """Halaman pengaturan"""
@@ -718,7 +717,7 @@ def web_settings():
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_dashboard'))
 
-@web_admin_bp.route('/web/settings/update-password', methods=['POST'])
+@web_admin_bp.route('/settings/update-password', methods=['POST'])
 @login_required
 def web_update_password():
     """Update password admin"""

@@ -50,7 +50,7 @@
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('web_users') }}" class="back-button">
+<a href="{{ url_for('web_admin.web_users') }}" class="back-button">
     <i class="fas fa-arrow-left"></i> Kembali
 </a>
 
@@ -118,7 +118,7 @@
                     </td>
                     <td style="font-size: 0.9rem;">{{ record.notes if record.notes else '-' }}</td>
                     <td>
-                        <form method="POST" action="{{ url_for('web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
+                        <form method="POST" action="{{ url_for('web_admin.web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
                             <button type="submit" class="btn btn-sm btn-danger" title="Hapus Record">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -144,7 +144,7 @@
     </div>
     <div class="danger-zone-body">
         <p>Menghapus user akan menghapus semua data terkait secara permanen.</p>
-        <form method="POST" action="{{ url_for('web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('PERHATIAN: Tindakan ini tidak dapat dibatalkan. Semua data user akan dihapus permanen. Lanjutkan?');">
+        <form method="POST" action="{{ url_for('web_admin.web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('PERHATIAN: Tindakan ini tidak dapat dibatalkan. Semua data user akan dihapus permanen. Lanjutkan?');">
             <button type="submit" class="btn btn-danger">
                 <i class="fas fa-trash"></i> Hapus User Ini
             </button>

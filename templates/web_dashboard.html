@@ -296,7 +296,7 @@
                     </thead>
                     <tbody>
                         {% for user in recent_users %}
-                        <tr data-url="{{ url_for('web_user_detail', user_id=user.id) }}" class="clickable-row">
+                        <tr data-url="{{ url_for('web_admin.web_user_detail', user_id=user.id) }}" class="clickable-row">
                             <td>
                                 {{ user.name }}
                             </td>
@@ -316,7 +316,7 @@
             {% endif %}
         </div>
         <div class="card-footer">
-            <a href="{{ url_for('web_users') }}" class="btn btn-primary btn-sm">
+            <a href="{{ url_for('web_admin.web_users') }}" class="btn btn-primary btn-sm">
                 Lihat Semua Users
             </a>
         </div>
@@ -358,7 +358,7 @@
             {% endif %}
         </div>
         <div class="card-footer">
-            <a href="{{ url_for('web_skin_data') }}" class="btn btn-primary btn-sm">
+            <a href="{{ url_for('web_admin.web_skin_data') }}" class="btn btn-primary btn-sm">
                 Lihat Semua Data Kulit
             </a>
         </div>

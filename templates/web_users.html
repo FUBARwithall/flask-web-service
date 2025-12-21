@@ -82,7 +82,7 @@
                     <td> {{ user.email }} </td>
                     <td> {{ user.created_at }} </td>
                     <td>
-                        <form method="POST" action="{{ url_for('web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus user ini? Data terkait juga akan dihapus.');">
+                        <form method="POST" action="{{ url_for('web_admin.web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus user ini? Data terkait juga akan dihapus.');">
                             <button type="submit" class="btn btn-danger" title="Hapus User">
                                 <i class="fas fa-trash"></i>
                             </button>

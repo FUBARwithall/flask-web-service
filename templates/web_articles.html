@@ -48,7 +48,7 @@
         <h3>Daftar Artikel</h3>
         <p>Kelola konten artikel yang tampil di aplikasi</p>
     </div>
-    <a href="{{ url_for('web_create_article') }}" class="btn btn-primary">
+    <a href="{{ url_for('web_admin.web_create_article') }}" class="btn btn-primary">
         <i class="fas fa-plus"></i> Buat Artikel Baru
     </a>
 </div>
@@ -85,7 +85,7 @@
                 <td>#{{ a.id }}</td>
                 <td>
                     {% if a.image %}
-                    <img src="{{ url_for('uploaded_file', filename=a.image) }}" alt="Gambar Artikel" class="image-thumbnail">
+                    <img src="{{ url_for('web_admin.uploaded_file', filename=a.image) }}" alt="Gambar Artikel" class="image-thumbnail">
                     {% else %}
                     <span style="color: #94a3b8;">Tidak ada</span>
                     {% endif %}
@@ -94,7 +94,7 @@
                 <td style="color: #64748b; font-size: 0.9rem;">{{ a.description[:100] }}{% if a.description|length > 100 %}...{% endif %}</td>
                 <td style="font-size: 0.85rem; color: #94a3b8;">{{ a.created_at }}</td>
                 <td>
-                    <form action="{{ url_for('web_delete_article', article_id=a.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus artikel ini?');">
+                    <form action="{{ url_for('web_admin.web_delete_article', article_id=a.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus artikel ini?');">
                         <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                     </form>
                 </td>

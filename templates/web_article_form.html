@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <label class="form-label" for="image">Gambar (opsional)</label>
             {% if article and article.image %}
             <div style="margin-bottom: 12px;">
-                <img src="{{ url_for('uploaded_file', filename=article.image) }}" alt="Gambar Saat Ini" class="image-preview">
+                <img src="{{ url_for('web_admin.uploaded_file', filename=article.image) }}" alt="Gambar Saat Ini" class="image-preview">
                 <div class="helper-text">Gambar saat ini</div>
             </div>
             {% endif %}
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <div style="display: flex; gap: 12px; margin-top: 32px;">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
-            <a href="{{ url_for('web_articles') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
+            <a href="{{ url_for('web_admin.web_articles') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
         </div>
     </form>
 </div>
