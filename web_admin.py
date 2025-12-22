@@ -692,6 +692,40 @@ def web_delete_skin_record(record_id):
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_skin_data'))
     
+@web_admin_bp.route('/skin-records/bulk-delete', methods=['POST'])
+@login_required
+def web_bulk_delete_skin_records():
+    """Bulk hapus skin records dari admin dashboard"""
+    try:
+        record_ids = request.form.getlist('record_ids')
+
+        if not record_ids:
+            flash('Tidak ada record yang dipilih', 'warning')
+            return redirect(url_for('web_admin.web_skin_data'))
+
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_skin_data'))
+
+        cursor = conn.cursor()
+
+        # Delete skin records
+        placeholders = ','.join(['%s'] * len(record_ids))
+        cursor.execute(f"DELETE FROM skin_data WHERE id IN ({placeholders})", record_ids)
+        deleted_count = cursor.rowcount
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        flash(f'{deleted_count} record berhasil dihapus', 'success')
+        return redirect(url_for('web_admin.web_skin_data'))
+    except Exception as e:
+        print(f"Error in web_bulk_delete_skin_records: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_skin_data'))
+    
 # ==================== WEB SETTINGS ====================
 
 @web_admin_bp.route('/settings')
