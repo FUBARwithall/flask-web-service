@@ -88,8 +88,17 @@ def web_dashboard():
         cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 0")
         total_users = cursor.fetchone()['count']
         
+        cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 1")
+        total_admin = cursor.fetchone()['count']
+        
         cursor.execute("SELECT COUNT(*) as count FROM skin_data")
         total_records = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM articles")
+        total_articles = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM products")
+        total_products = cursor.fetchone()['count']
         
         cursor.execute("SELECT id, name, email, created_at FROM users WHERE is_admin = 0 ORDER BY created_at DESC LIMIT 5")
         recent_users = cursor.fetchall()
@@ -102,7 +111,10 @@ def web_dashboard():
         
         return render_template('web_dashboard.html', 
                              total_users=total_users,
+                             total_admin=total_admin,
                              total_records=total_records,
+                             total_articles=total_articles,
+                             total_products=total_products,
                              recent_users=recent_users,
                              skin_stats=skin_stats)
     except Exception as e:
@@ -162,10 +174,18 @@ def web_user_detail(user_id):
         """, (user_id,))
         skin_records = cursor.fetchall()
         
+        cursor.execute("""
+            SELECT id, log_date, skin_load_score, status, main_triggers
+            FROM daily_skin_analysis 
+            WHERE user_id = %s 
+            ORDER BY created_at DESC
+        """, (user_id,))
+        skin_analysis = cursor.fetchall()
+        
         cursor.close()
         conn.close()
         
-        return render_template('web_user_detail.html', user=user, skin_records=skin_records)
+        return render_template('web_user_detail.html', user=user, skin_records=skin_records, skin_analysis=skin_analysis)
     except Exception as e:
         print(f"Error in web_user_detail: {e}")
         flash('Terjadi kesalahan server', 'danger')
