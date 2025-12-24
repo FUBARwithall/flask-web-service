@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 21 Des 2025 pada 10.12
+-- Waktu pembuatan: 24 Des 2025 pada 05.34
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -40,12 +40,12 @@ CREATE TABLE `articles` (
 --
 
 INSERT INTO `articles` (`id`, `title`, `description`, `image`, `created_at`) VALUES
-(1, 'Tips Merawat Kulit Berjerawat', '<p>Jerawat memang bikin kesal, apalagi kalau muncul pas lagi butuh tampil percaya diri.</p>\r\n<p>Tapi tenang, kamu bisa kok mengatasinya dengan langkah-langkah sederhana tanpa harus panik.</p>\r\n<p>Pertama, pastikan kamu rutin mencuci wajah dua kali sehari pakai sabun yang lembut dan sesuai jenis kulitmu. Hindari menggosok wajah terlalu keras karena bisa bikin iritasi dan memperparah jerawat.</p>\r\n<p>Gunakan produk non-komedogenik agar pori-pori nggak tersumbat. Kalau kamu suka pakai makeup, jangan lupa selalu bersihkan sebelum tidur, ya!</p>\r\n<p>Selain itu, jaga tanganmu agar nggak sering menyentuh wajah karena bakteri bisa pindah ke kulit dan menyebabkan jerawat baru.</p>\r\n<p>Perhatikan juga pola makan &mdash; terlalu banyak gorengan atau makanan manis bisa memicu jerawat makin parah. Perbanyak air putih dan sayur supaya kulitmu tetap sehat dari dalam.</p>\r\n<p>Terakhir, jangan asal coba produk skincare baru dalam waktu bersamaan, beri jeda beberapa hari untuk melihat reaksi kulitmu. Ingat, kunci utama merawat kulit berjerawat adalah sabar dan konsisten.</p>\r\n<p>Jerawat nggak bisa hilang semalam, tapi dengan perawatan rutin, kulitmu bisa kembali bersih dan glowing alami!</p>', '🧴', '2025-12-10 01:06:04'),
-(2, 'Pentingnya Sunscreen Setiap Hari', '<p>Sunscreen itu wajib banget, bukan cuma saat kamu mau ke pantai atau aktivitas di luar ruangan. Sinar UV tetap bisa menembus awan dan kaca, jadi kulitmu tetap bisa terpapar meskipun cuaca mendung atau kamu di dalam mobil.</p>\r\n<p>Dengan memakai sunscreen setiap hari, kamu bisa mencegah banyak masalah kulit seperti flek hitam, penuaan dini, dan kulit kusam. Pilih sunscreen dengan SPF minimal 30 dan PA+++ untuk perlindungan maksimal dari UVA dan UVB. Jangan lupa oleskan secara merata ke seluruh wajah dan leher sekitar 15&ndash;20 menit sebelum keluar rumah.</p>\r\n<p>Kalau kamu sering berkeringat atau beraktivitas di luar ruangan, aplikasikan ulang setiap 2&ndash;3 jam. Ada banyak jenis sunscreen sekarang&mdash;gel, cream, atau spray&mdash;jadi pilih yang paling nyaman buat kamu. Ingat, sunscreen bukan sekadar pelengkap skincare, tapi benteng utama yang melindungi kulitmu dari kerusakan jangka panjang.</p>\r\n<p>Jadi, jangan malas ya! Dengan kebiasaan kecil ini, kamu bisa menjaga kulit tetap sehat, cerah, dan awet muda lebih lama!</p>', '☀️', '2025-12-10 01:07:38'),
-(3, 'Skincare Routine untuk Pemula', '<p>Baru mau mulai pakai skincare tapi bingung harus dari mana? Tenang, semua orang pernah di fase itu kok! Kuncinya adalah mulai dari yang sederhana dulu. Nggak perlu langsung beli banyak produk mahal, cukup pahami kebutuhan dasar kulitmu.</p>\r\n<p>Langkah awal yang paling penting adalah cleansing alias membersihkan wajah dua kali sehari, pagi dan malam. Setelah itu, gunakan toner untuk menyeimbangkan pH kulit. Lanjutkan dengan pelembap agar kulit tetap lembap dan sehat. Di pagi hari, tambahkan sunscreen sebagai pelindung terakhir.</p>\r\n<p>Kalau kamu sudah terbiasa, baru deh bisa pelan-pelan menambah serum atau exfoliating toner sesuai kebutuhan kulitmu. Jangan lupa, setiap orang punya jenis kulit berbeda, jadi carilah produk yang cocok buat kamu. Jangan asal ikut tren, karena skincare bukan balapan.</p>\r\n<p>Yang terpenting, konsisten! Kulit butuh waktu untuk beradaptasi. Dengan rutinitas yang teratur dan sabar, kamu bakal lihat perubahan positif di kulitmu. Ingat, perawatan kulit itu bukan tentang cepat, tapi tentang telaten.</p>', '✨', '2025-12-10 01:07:38'),
-(4, 'Mengenal Jenis Kulit Wajah', '<p>Sebelum beli skincare, hal pertama yang wajib kamu tahu adalah jenis kulitmu. Soalnya, salah pilih produk bisa bikin kulit iritasi, makin berminyak, atau malah kering banget.</p>\r\n<p>Secara umum, ada lima jenis kulit wajah: normal, kering, berminyak, kombinasi, dan sensitif. Kulit normal biasanya terasa seimbang, nggak terlalu kering atau berminyak. Kulit kering cenderung terasa kaku dan bisa mengelupas di beberapa area. Kulit berminyak sering tampak mengilap dan mudah berjerawat. Kalau kombinasi, biasanya berminyak di area T-zone (dahi, hidung, dagu) tapi kering di pipi. Sedangkan kulit sensitif gampang merah dan reaktif terhadap produk tertentu.</p>\r\n<p>Cara paling mudah mengenalinya adalah dengan tes sederhana. Setelah mencuci wajah, tunggu sekitar 30 menit tanpa memakai produk apapun, lalu perhatikan bagaimana kondisi kulitmu terasa. Dari situ, kamu bisa menentukan skincare yang paling cocok.</p>\r\n<p>Dengan tahu jenis kulitmu, kamu bisa memilih produk yang tepat dan hasil perawatannya akan lebih maksimal. Jadi, kenali dulu kulitmu sebelum asal beli skincare ya!</p>', '20251213_222444_alamak.jpg', '2025-12-10 01:10:48'),
+(1, 'Tips Merawat Kulit Berjerawat', '<p>Jerawat memang bikin kesal, apalagi kalau muncul pas lagi butuh tampil percaya diri.</p>\r\n<p>Tapi tenang, kamu bisa kok mengatasinya dengan langkah-langkah sederhana tanpa harus panik.</p>\r\n<p>Pertama, pastikan kamu rutin mencuci wajah dua kali sehari pakai sabun yang lembut dan sesuai jenis kulitmu. Hindari menggosok wajah terlalu keras karena bisa bikin iritasi dan memperparah jerawat.</p>\r\n<p>Gunakan produk non-komedogenik agar pori-pori nggak tersumbat. Kalau kamu suka pakai makeup, jangan lupa selalu bersihkan sebelum tidur, ya!</p>\r\n<p>Selain itu, jaga tanganmu agar nggak sering menyentuh wajah karena bakteri bisa pindah ke kulit dan menyebabkan jerawat baru.</p>\r\n<p>Perhatikan juga pola makan &mdash; terlalu banyak gorengan atau makanan manis bisa memicu jerawat makin parah. Perbanyak air putih dan sayur supaya kulitmu tetap sehat dari dalam.</p>\r\n<p>Terakhir, jangan asal coba produk skincare baru dalam waktu bersamaan, beri jeda beberapa hari untuk melihat reaksi kulitmu. Ingat, kunci utama merawat kulit berjerawat adalah sabar dan konsisten.</p>\r\n<p>Jerawat nggak bisa hilang semalam, tapi dengan perawatan rutin, kulitmu bisa kembali bersih dan glowing alami!</p>', '20251223_210703_hoi4-gdr-keyart-loop-frame.jpg', '2025-12-10 01:06:04'),
+(2, 'Pentingnya Sunscreen Setiap Hari', '<p>Sunscreen itu wajib banget, bukan cuma saat kamu mau ke pantai atau aktivitas di luar ruangan. Sinar UV tetap bisa menembus awan dan kaca, jadi kulitmu tetap bisa terpapar meskipun cuaca mendung atau kamu di dalam mobil.</p>\r\n<p>Dengan memakai sunscreen setiap hari, kamu bisa mencegah banyak masalah kulit seperti flek hitam, penuaan dini, dan kulit kusam. Pilih sunscreen dengan SPF minimal 30 dan PA+++ untuk perlindungan maksimal dari UVA dan UVB. Jangan lupa oleskan secara merata ke seluruh wajah dan leher sekitar 15&ndash;20 menit sebelum keluar rumah.</p>\r\n<p>Kalau kamu sering berkeringat atau beraktivitas di luar ruangan, aplikasikan ulang setiap 2&ndash;3 jam. Ada banyak jenis sunscreen sekarang&mdash;gel, cream, atau spray&mdash;jadi pilih yang paling nyaman buat kamu. Ingat, sunscreen bukan sekadar pelengkap skincare, tapi benteng utama yang melindungi kulitmu dari kerusakan jangka panjang.</p>\r\n<p>Jadi, jangan malas ya! Dengan kebiasaan kecil ini, kamu bisa menjaga kulit tetap sehat, cerah, dan awet muda lebih lama!</p>', '20251223_210647_Kaga.jpg', '2025-12-10 01:07:38'),
+(3, 'Skincare Routine untuk Pemula', '<p>Baru mau mulai pakai skincare tapi bingung harus dari mana? Tenang, semua orang pernah di fase itu kok! Kuncinya adalah mulai dari yang sederhana dulu. Nggak perlu langsung beli banyak produk mahal, cukup pahami kebutuhan dasar kulitmu.</p>\r\n<p>Langkah awal yang paling penting adalah cleansing alias membersihkan wajah dua kali sehari, pagi dan malam. Setelah itu, gunakan toner untuk menyeimbangkan pH kulit. Lanjutkan dengan pelembap agar kulit tetap lembap dan sehat. Di pagi hari, tambahkan sunscreen sebagai pelindung terakhir.</p>\r\n<p>Kalau kamu sudah terbiasa, baru deh bisa pelan-pelan menambah serum atau exfoliating toner sesuai kebutuhan kulitmu. Jangan lupa, setiap orang punya jenis kulit berbeda, jadi carilah produk yang cocok buat kamu. Jangan asal ikut tren, karena skincare bukan balapan.</p>\r\n<p>Yang terpenting, konsisten! Kulit butuh waktu untuk beradaptasi. Dengan rutinitas yang teratur dan sabar, kamu bakal lihat perubahan positif di kulitmu. Ingat, perawatan kulit itu bukan tentang cepat, tapi tentang telaten.</p>', '20251223_210654_photo.png', '2025-12-10 01:07:38'),
+(4, 'Mengenal Jenis Kulit Wajah', '<p>Sebelum beli skincare, hal pertama yang wajib kamu tahu adalah jenis kulitmu. Soalnya, salah pilih produk bisa bikin kulit iritasi, makin berminyak, atau malah kering banget.</p>\r\n<p>Secara umum, ada lima jenis kulit wajah: normal, kering, berminyak, kombinasi, dan sensitif. Kulit normal biasanya terasa seimbang, nggak terlalu kering atau berminyak. Kulit kering cenderung terasa kaku dan bisa mengelupas di beberapa area. Kulit berminyak sering tampak mengilap dan mudah berjerawat. Kalau kombinasi, biasanya berminyak di area T-zone (dahi, hidung, dagu) tapi kering di pipi. Sedangkan kulit sensitif gampang merah dan reaktif terhadap produk tertentu.</p>\r\n<p>Cara paling mudah mengenalinya adalah dengan tes sederhana. Setelah mencuci wajah, tunggu sekitar 30 menit tanpa memakai produk apapun, lalu perhatikan bagaimana kondisi kulitmu terasa. Dari situ, kamu bisa menentukan skincare yang paling cocok.</p>\r\n<p>Dengan tahu jenis kulitmu, kamu bisa memilih produk yang tepat dan hasil perawatannya akan lebih maksimal. Jadi, kenali dulu kulitmu sebelum asal beli skincare yah!</p>', '20251222_101942_alamak.jpg', '2025-12-10 01:10:48'),
 (5, 'Cara Memilih Moisturizer', '<p>Moisturizer atau pelembap adalah salah satu produk skincare yang wajib banget kamu punya. Tapi masalahnya, nggak semua pelembap cocok buat semua orang. Jadi, kamu harus tahu cara memilih yang pas untuk jenis kulitmu.</p>\r\n<p>Kalau kulitmu kering, pilih pelembap dengan tekstur cream yang mengandung bahan seperti hyaluronic acid, glycerin, atau ceramide. Bahan-bahan ini bantu menjaga kelembapan lebih lama. Untuk kulit berminyak, sebaiknya pakai pelembap berbasis gel yang ringan dan cepat meresap, biar nggak bikin wajah makin mengilap.</p>\r\n<p>Kalau kamu punya kulit sensitif, hindari produk yang mengandung alkohol atau pewangi buatan karena bisa memicu iritasi. Sedangkan kulit kombinasi bisa pakai tekstur lotion yang seimbang antara ringan dan lembap.</p>\r\n<p>Gunakan pelembap dua kali sehari setelah membersihkan wajah. Pelembap juga penting digunakan malam hari agar kulit bisa memperbaiki diri saat kamu tidur. Jadi, jangan pernah skip moisturizer karena kulit butuh &lsquo;minuman&rsquo; juga supaya tetap sehat dan lembut.</p>', '20251213_224431_download.jpeg', '2025-12-10 01:10:48'),
-(6, 'Manfaat Double Cleansing', '<p>Kamu mungkin sering dengar istilah &lsquo;double cleansing&rsquo;, tapi sebenarnya apa sih artinya? Double cleansing adalah teknik membersihkan wajah dua tahap &mdash; pertama dengan pembersih berbasis minyak, lalu dilanjutkan dengan pembersih berbasis air.</p>\r\n<p>Langkah pertama biasanya menggunakan cleansing oil, balm, atau micellar water untuk mengangkat makeup, sunscreen, dan kotoran yang menempel seharian. Setelah itu, baru lanjut dengan sabun cuci muka (facial wash) agar kulit benar-benar bersih.</p>\r\n<p>Kenapa penting? Karena pembersihan satu tahap sering kali nggak cukup, terutama kalau kamu pakai sunscreen setiap hari. Sisa kotoran bisa menyumbat pori dan memicu jerawat. Dengan double cleansing, kulit jadi lebih siap menerima skincare berikutnya seperti toner dan serum.</p>\r\n<p>Tapi ingat, jangan berlebihan ya. Lakukan double cleansing cukup malam hari setelah beraktivitas. Di pagi hari, cukup cuci muka sekali saja agar kulit nggak kering.</p>\r\n<p>Dengan rutin melakukan double cleansing, wajahmu akan terasa lebih bersih, segar, dan bebas kusam. Kulit juga jadi lebih sehat dan glowing alami!</p>', '20251213_224437_images.jpeg', '2025-12-10 01:10:48');
+(6, 'Manfaat Double Cleansing', '<p>Kamu mungkin sering dengar istilah \'double cleansing\', tapi sebenarnya apa sih artinya? Double cleansing adalah teknik membersihkan wajah dua tahap &mdash; pertama dengan pembersih berbasis minyak, lalu dilanjutkan dengan pembersih berbasis air.</p>\r\n<p>Langkah pertama biasanya menggunakan cleansing oil, balm, atau micellar water untuk mengangkat makeup, sunscreen, dan kotoran yang menempel seharian. Setelah itu, baru lanjut dengan sabun cuci muka (facial wash) agar kulit benar-benar bersih.</p>\r\n<p>Kenapa penting? Karena pembersihan satu tahap sering kali nggak cukup, terutama kalau kamu pakai sunscreen setiap hari. Sisa kotoran bisa menyumbat pori dan memicu jerawat. Dengan double cleansing, kulit jadi lebih siap menerima skincare berikutnya seperti toner dan serum.</p>\r\n<p>Tapi ingat, jangan berlebihan ya. Lakukan double cleansing cukup malam hari setelah beraktivitas. Di pagi hari, cukup cuci muka sekali saja agar kulit nggak kering.</p>\r\n<p>Dengan rutin melakukan double cleansing, wajahmu akan terasa lebih bersih, segar, dan bebas kusam. Kulit juga jadi lebih sehat dan glowing alami!</p>', '20251213_224437_images.jpeg', '2025-12-10 01:10:48');
 
 -- --------------------------------------------------------
 
@@ -65,7 +65,8 @@ CREATE TABLE `article_favorites` (
 --
 
 INSERT INTO `article_favorites` (`id`, `user_id`, `article_id`, `created_at`) VALUES
-(0, 4, 4, '2025-12-18 12:04:00');
+(0, 4, 4, '2025-12-18 12:04:00'),
+(0, 8, 2, '2025-12-23 14:08:51');
 
 -- --------------------------------------------------------
 
@@ -76,19 +77,19 @@ INSERT INTO `article_favorites` (`id`, `user_id`, `article_id`, `created_at`) VA
 CREATE TABLE `daily_drink_logs` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `log_date` date NOT NULL,
-  `drink_type` enum('WATER','SWEET') NOT NULL,
+  `drink_id` int(11) NOT NULL,
   `quantity` int(11) NOT NULL COMMENT 'gelas / botol',
-  `sugar` tinyint(4) DEFAULT 0 COMMENT 'gula per unit (untuk SWEET)'
+  `log_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `daily_drink_logs`
 --
 
-INSERT INTO `daily_drink_logs` (`id`, `user_id`, `log_date`, `drink_type`, `quantity`, `sugar`) VALUES
-(1, 1, '2025-01-10', 'WATER', 4, 0),
-(2, 1, '2025-01-10', 'SWEET', 1, 2);
+INSERT INTO `daily_drink_logs` (`id`, `user_id`, `drink_id`, `quantity`, `log_date`) VALUES
+(1, 1, 2, 5, '2025-12-22'),
+(2, 1, 7, 1, '2025-12-22'),
+(3, 1, 1, 1, '2025-12-24');
 
 -- --------------------------------------------------------
 
@@ -109,9 +110,10 @@ CREATE TABLE `daily_food_logs` (
 --
 
 INSERT INTO `daily_food_logs` (`id`, `user_id`, `food_id`, `quantity`, `log_date`) VALUES
-(1, 1, 1, 2, '2025-01-10'),
-(2, 1, 2, 1, '2025-01-10'),
-(3, 1, 3, 1, '2025-01-10');
+(1, 1, 3, 1, '2025-12-22'),
+(2, 1, 2, 1, '2025-12-22'),
+(3, 1, 1, 2, '2025-12-22'),
+(4, 1, 3, 1, '2025-12-24');
 
 -- --------------------------------------------------------
 
@@ -136,6 +138,14 @@ CREATE TABLE `daily_skin_analysis` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `daily_skin_analysis`
+--
+
+INSERT INTO `daily_skin_analysis` (`id`, `user_id`, `log_date`, `total_oil`, `total_simple_carb`, `total_sugar`, `total_fiber`, `total_fermented`, `hydration`, `sleep_deficit`, `skin_load_score`, `status`, `main_triggers`, `created_at`) VALUES
+(1, 1, '2025-12-22', 66, 42, 6, 12, 12, 54, 0, 88, 'OVER_LIMIT', 'Konsumsi minyak/gorengan berlebih; Konsumsi karbohidrat sederhana tinggi', '2025-12-22 11:45:29'),
+(2, 3, '2025-12-24', 4, 1, 0, 0, 0, 1, 0.5, 5.25, 'WASPADA', 'Serat kurang; Hidrasi kurang', '2025-12-24 03:55:12');
+
 -- --------------------------------------------------------
 
 --
@@ -154,7 +164,38 @@ CREATE TABLE `daily_sleep_logs` (
 --
 
 INSERT INTO `daily_sleep_logs` (`id`, `user_id`, `log_date`, `sleep_hours`) VALUES
-(1, 1, '2025-01-10', 5);
+(1, 1, '2025-01-10', 5),
+(2, 1, '2025-12-22', 8),
+(3, 1, '2025-12-22', 8),
+(4, 1, '2025-12-22', 8),
+(5, 1, '2025-12-24', 7.5);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `drinks`
+--
+
+CREATE TABLE `drinks` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `drink_type` enum('WATER','SWEET') NOT NULL,
+  `sugar` tinyint(4) DEFAULT 0 COMMENT '0–4 gula per unit'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `drinks`
+--
+
+INSERT INTO `drinks` (`id`, `name`, `drink_type`, `sugar`) VALUES
+(1, 'Air Putih', 'WATER', 0),
+(2, 'Air Mineral', 'WATER', 0),
+(3, 'Teh Manis', 'SWEET', 3),
+(4, 'Kopi Susu', 'SWEET', 2),
+(5, 'Jus Jeruk', 'SWEET', 4),
+(6, 'Soda', 'SWEET', 5),
+(7, 'Es Teh Tawar', 'WATER', 0),
+(8, 'Teh Hijau', 'WATER', 0);
 
 -- --------------------------------------------------------
 
@@ -227,19 +268,8 @@ CREATE TABLE `product_favorites` (
 --
 
 INSERT INTO `product_favorites` (`id`, `user_id`, `product_id`, `created_at`) VALUES
-(0, 4, 2, '2025-12-18 12:03:01');
-
--- --------------------------------------------------------
-
---
--- Stand-in struktur untuk tampilan `skin_condition_summary`
--- (Lihat di bawah untuk tampilan aktual)
---
-CREATE TABLE `skin_condition_summary` (
-`skin_condition` varchar(255)
-,`count` bigint(21)
-,`percentage` decimal(26,2)
-);
+(0, 4, 2, '2025-12-18 12:03:01'),
+(0, 8, 0, '2025-12-23 14:08:57');
 
 -- --------------------------------------------------------
 
@@ -294,63 +324,6 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `is_admin`, `created_at`
 (7, 'Hah ?', 'frybanshee123@gmail.com', 'scrypt:32768:8:1$BbyjlvDj4ThkAEET$764d144d8b6c4288dec25538ddf934441eb7db3c9159aa18ca6d50329508c2259cffaa8a4c2e9f5690045b265879f3d32f5de8b12296104e48647ea0e976266b', 0, '2025-12-09 13:17:35'),
 (8, 'Piresabil wistyorafa', 'fourducks12@gmail.com', 'scrypt:32768:8:1$ihKijexRtHY8CMnA$14fe9cc1b4a32a02c095c4557f82c640b25c0a7bb435c20254dc5c708d347c9cd73c25d1a0a1056ff7fea9a40aad808f34f9171713838f8ccb81936f559a0f49', 0, '2025-12-21 08:24:27');
 
--- --------------------------------------------------------
-
---
--- Stand-in struktur untuk tampilan `user_latest_record`
--- (Lihat di bawah untuk tampilan aktual)
---
-CREATE TABLE `user_latest_record` (
-`id` int(11)
-,`name` varchar(255)
-,`email` varchar(255)
-,`user_created_at` timestamp
-,`skin_condition` varchar(255)
-,`severity` varchar(100)
-,`record_created_at` timestamp
-,`record_rank` bigint(21)
-);
-
--- --------------------------------------------------------
-
---
--- Stand-in struktur untuk tampilan `user_statistics`
--- (Lihat di bawah untuk tampilan aktual)
---
-CREATE TABLE `user_statistics` (
-`total_users` bigint(21)
-,`total_regular_users` bigint(21)
-,`total_admins` bigint(21)
-,`total_skin_records` bigint(21)
-);
-
--- --------------------------------------------------------
-
---
--- Struktur untuk view `skin_condition_summary`
---
-DROP TABLE IF EXISTS `skin_condition_summary`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `skin_condition_summary`  AS SELECT `skin_data`.`skin_condition` AS `skin_condition`, count(0) AS `count`, round(count(0) * 100.0 / (select count(0) from `skin_data`),2) AS `percentage` FROM `skin_data` WHERE `skin_data`.`skin_condition` is not null GROUP BY `skin_data`.`skin_condition` ORDER BY count(0) DESC ;
-
--- --------------------------------------------------------
-
---
--- Struktur untuk view `user_latest_record`
---
-DROP TABLE IF EXISTS `user_latest_record`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `user_latest_record`  AS SELECT `u`.`id` AS `id`, `u`.`name` AS `name`, `u`.`email` AS `email`, `u`.`created_at` AS `user_created_at`, `sd`.`skin_condition` AS `skin_condition`, `sd`.`severity` AS `severity`, `sd`.`created_at` AS `record_created_at`, row_number() over ( partition by `u`.`id` order by `sd`.`created_at` desc) AS `record_rank` FROM (`users` `u` left join `skin_data` `sd` on(`u`.`id` = `sd`.`user_id`)) ;
-
--- --------------------------------------------------------
-
---
--- Struktur untuk view `user_statistics`
---
-DROP TABLE IF EXISTS `user_statistics`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `user_statistics`  AS SELECT count(distinct `u`.`id`) AS `total_users`, count(distinct case when `u`.`is_admin` = 0 then `u`.`id` end) AS `total_regular_users`, count(distinct case when `u`.`is_admin` = 1 then `u`.`id` end) AS `total_admins`, count(distinct `sd`.`id`) AS `total_skin_records` FROM (`users` `u` left join `skin_data` `sd` on(`u`.`id` = `sd`.`user_id`)) ;
-
 --
 -- Indexes for dumped tables
 --
@@ -368,7 +341,8 @@ ALTER TABLE `articles`
 --
 ALTER TABLE `daily_drink_logs`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_drink_user` (`user_id`);
+  ADD KEY `fk_drink_user` (`user_id`),
+  ADD KEY `fk_drink_drink` (`drink_id`);
 
 --
 -- Indeks untuk tabel `daily_food_logs`
@@ -391,6 +365,13 @@ ALTER TABLE `daily_skin_analysis`
 ALTER TABLE `daily_sleep_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_sleep_user` (`user_id`);
+
+--
+-- Indeks untuk tabel `drinks`
+--
+ALTER TABLE `drinks`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_drink_type` (`drink_type`);
 
 --
 -- Indeks untuk tabel `foods`
@@ -431,25 +412,31 @@ ALTER TABLE `articles`
 -- AUTO_INCREMENT untuk tabel `daily_drink_logs`
 --
 ALTER TABLE `daily_drink_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `daily_food_logs`
 --
 ALTER TABLE `daily_food_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `daily_skin_analysis`
 --
 ALTER TABLE `daily_skin_analysis`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `daily_sleep_logs`
 --
 ALTER TABLE `daily_sleep_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT untuk tabel `drinks`
+--
+ALTER TABLE `drinks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `foods`
@@ -477,6 +464,7 @@ ALTER TABLE `users`
 -- Ketidakleluasaan untuk tabel `daily_drink_logs`
 --
 ALTER TABLE `daily_drink_logs`
+  ADD CONSTRAINT `fk_drink_drink` FOREIGN KEY (`drink_id`) REFERENCES `drinks` (`id`),
   ADD CONSTRAINT `fk_drink_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
