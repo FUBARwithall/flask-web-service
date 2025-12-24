@@ -3,19 +3,20 @@ from flask_cors import CORS
 import resend
 import os
 from config import SECRET_KEY, UPLOAD_FOLDER, RESEND_FROM_EMAIL
+from flask_jwt_extended import JWTManager
 
-# Initialize Resend
 resend.api_key = 're_G81rJoda_4yAmyTMaqdbbh9R58nt8U6ty'
 
-# Create Flask app
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 CORS(app)
 
-# Upload configuration
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# JWT CONFIG (WAJIB)
+app.config['JWT_SECRET_KEY'] = SECRET_KEY
+jwt = JWTManager(app)
 
-# Ensure upload directory exists
+# Upload config
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Register blueprints

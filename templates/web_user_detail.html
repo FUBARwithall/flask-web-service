@@ -110,7 +110,7 @@
             <tbody>
                 {% for record in skin_records %}
                 <tr>
-                    <td style="font-size: 0.85rem; color: #94a3b8;"><i class="fas fa-clock"></i> {{ record.created_at }}</td>
+                    <td style="font-size: 0.85rem;"><i class="fas fa-clock"></i> {{ record.created_at }}</td>
                     <td><strong>{{ record.skin_condition }}</strong></td>
                     <td>
                         {% set severity_class = 'mild' if record.severity == 'mild' else 'moderate' if record.severity == 'moderate' else 'severe' %}
@@ -124,6 +124,43 @@
                             </button>
                         </form>
                     </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>User belum memiliki riwayat data kulit</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Skin Analisis -->
+<div class="table-card">
+    <div class="table-header">
+        <div class="table-header-title"><i class="fas fa-heartbeat"></i> Analisis Kulit</div>
+        <span class="badge">{{ skin_analysis|length }} analisis</span>
+    </div>
+    {% if skin_analysis %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Skor Kulit</th>
+                    <th>Status</th>
+                    <th>Penyebab Utama</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for analisis in skin_analysis %}
+                <tr>
+                    <td style="font-size: 0.85rem;"><i class="fas fa-clock"></i> {{ analisis.log_date }}</td>
+                    <td>{{ analisis.skin_load_score }}</td>
+                    <td>{{ analisis.status }}</td>
+                    <td>{{ analisis.main_triggers }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
