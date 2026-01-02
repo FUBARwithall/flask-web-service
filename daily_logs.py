@@ -505,20 +505,20 @@ def create_daily_sleep_log():
 # ==================== SKIN ANALYSIS API ====================
 
 def calculate_daily_aggregates(user_id, log_date):
-    """Hitung aggregate nutrisi harian untuk user"""
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    if not conn:
+        return None
+
+    cursor = conn.cursor(dictionary=True, buffered=True)
 
     cursor.execute("""
         SELECT
-            -- FOOD
             COALESCE(SUM(f.oil * fl.quantity), 0) AS total_oil,
             COALESCE(SUM(f.simple_carb * fl.quantity), 0) AS total_simple_carb,
             COALESCE(SUM(f.sugar * fl.quantity), 0) AS food_sugar,
             COALESCE(SUM(f.fiber * fl.quantity), 0) AS total_fiber,
             COALESCE(SUM(f.fermented * fl.quantity), 0) AS total_fermented,
 
-            -- DRINK (JOIN KE drinks)
             COALESCE(SUM(
                 CASE WHEN d.drink_type = 'WATER'
                 THEN dl.quantity ELSE 0 END
@@ -529,32 +529,26 @@ def calculate_daily_aggregates(user_id, log_date):
                 THEN d.sugar * dl.quantity ELSE 0 END
             ), 0) AS liquid_sugar,
 
-            -- SLEEP
             COALESCE(sl.sleep_hours, 0) AS sleep_hours
-
         FROM users u
         LEFT JOIN daily_food_logs fl
             ON u.id = fl.user_id AND fl.log_date = %s
-        LEFT JOIN foods f
-            ON fl.food_id = f.id
-
+        LEFT JOIN foods f ON fl.food_id = f.id
         LEFT JOIN daily_drink_logs dl
             ON u.id = dl.user_id AND dl.log_date = %s
-        LEFT JOIN drinks d
-            ON dl.drink_id = d.id
-
+        LEFT JOIN drinks d ON dl.drink_id = d.id
         LEFT JOIN daily_sleep_logs sl
             ON u.id = sl.user_id AND sl.log_date = %s
-
         WHERE u.id = %s
         GROUP BY u.id, sl.sleep_hours
     """, (log_date, log_date, log_date, user_id))
 
-    result = cursor.fetchone()
+    rows = cursor.fetchall()   # 🔑 consume EVERYTHING
     cursor.close()
     conn.close()
 
-    return result
+    return rows[0] if rows else None
+
 
 def calculate_skin_load_score(aggregates):
     """Hitung skin load score berdasarkan formula"""
@@ -715,3 +709,73 @@ def generate_skin_analysis():
     except Exception as e:
         print(f"Error in generate_skin_analysis: {e}")
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+@daily_logs_bp.route('/api/skin-analysis/history', methods=['GET'])
+def get_analysis_history():
+    try:
+        user_id = request.args.get('user_id', type=int)
+        if not user_id:
+            return jsonify({'success': False, 'message': 'user_id required'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True, buffered=True)
+
+        query = """
+            SELECT 
+                dsa.log_date,
+                dsa.skin_load_score,
+                dsa.status,
+                dsa.main_triggers,
+                COALESCE(dsl.sleep_hours, 0) AS sleep_hours,
+
+                (
+                    SELECT GROUP_CONCAT(f.name SEPARATOR ', ')
+                    FROM daily_food_logs dfl
+                    JOIN foods f ON dfl.food_id = f.id
+                    WHERE dfl.user_id = dsa.user_id
+                      AND dfl.log_date = dsa.log_date
+                ) AS foods,
+
+                (
+                    SELECT GROUP_CONCAT(d.name SEPARATOR ', ')
+                    FROM daily_drink_logs ddl
+                    JOIN drinks d ON ddl.drink_id = d.id
+                    WHERE ddl.user_id = dsa.user_id
+                      AND ddl.log_date = dsa.log_date
+                ) AS drinks
+
+            FROM daily_skin_analysis dsa
+            LEFT JOIN daily_sleep_logs dsl
+                ON dsa.user_id = dsl.user_id
+               AND dsa.log_date = dsl.log_date
+            WHERE dsa.user_id = %s
+            ORDER BY dsa.log_date DESC
+            LIMIT 7
+        """
+
+        cursor.execute(query, (user_id,))
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        history = []
+        for row in rows:
+            history.append({
+                "date": row["log_date"].isoformat(),
+                "skin_load_score": float(row["skin_load_score"]),
+                "status": row["status"],
+                "main_triggers": row["main_triggers"],
+                "sleep_hours": float(row["sleep_hours"]),
+                "foods": row["foods"] or "-",
+                "drinks": row["drinks"] or "-"
+            })
+
+        return jsonify({'success': True, 'data': history}), 200
+
+    except Exception as e:
+        print(f"Error in get_analysis_history: {e}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
