@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import get_db_connection
 
 products_bp = Blueprint('products', __name__)
 
 @products_bp.route('/api/products', methods=['GET'])
+@jwt_required()
 def get_products():
     """Ambil semua products"""
     try:
@@ -25,6 +27,7 @@ def get_products():
 
 
 @products_bp.route('/api/products/<int:product_id>', methods=['GET'])
+@jwt_required()
 def get_product(product_id):
     """Ambil detail sebuah product"""
     try:
@@ -50,8 +53,9 @@ def get_product(product_id):
 # ==================== PRODUCTS FAVORITE ====================
 
 @products_bp.route('/api/products/<int:product_id>/favorite', methods=['POST'])
+@jwt_required()
 def favorite_product(product_id):
-    user_id = request.json.get('user_id')
+    user_id = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -65,12 +69,13 @@ def favorite_product(product_id):
     cursor.close()
     conn.close()
 
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success', 'message': 'Produk berhasil ditambahkan ke favorit'})
 
 
 @products_bp.route('/api/products/<int:product_id>/favorite', methods=['DELETE'])
+@jwt_required()
 def unfavorite_product(product_id):
-    user_id = request.json.get('user_id')
+    user_id = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -84,12 +89,13 @@ def unfavorite_product(product_id):
     cursor.close()
     conn.close()
 
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success', 'message': 'Produk berhasil dihapus dari favorit'})
 
 
 @products_bp.route('/api/products/<int:product_id>/favorite/status', methods=['GET'])
+@jwt_required()
 def product_favorite_status(product_id):
-    user_id = request.args.get('user_id')
+    user_id = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -109,9 +115,10 @@ def product_favorite_status(product_id):
 
 
 @products_bp.route('/api/products/favorites', methods=['GET'])
+@jwt_required()
 def get_favorite_products():
     try:
-        user_id = int(request.args.get('user_id'))
+        user_id = get_jwt_identity()
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)

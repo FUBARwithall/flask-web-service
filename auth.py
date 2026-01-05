@@ -130,7 +130,7 @@ def register():
     conn.close()
     del otp_storage[email]
 
-    access_token = create_access_token(identity=user_id)
+    access_token = create_access_token(identity=str(user_id))
 
     return jsonify(
         status='success',
@@ -169,7 +169,7 @@ def login():
     if not user or not check_password_hash(user['password'], password):
         return jsonify(status='error', message='Login gagal'), 401
 
-    access_token = create_access_token(identity=user['id'])
+    access_token = create_access_token(identity=str(user['id']))
 
     return jsonify(
         status='success',
@@ -207,7 +207,7 @@ def google_signin():
     user = cursor.fetchone()
 
     if user:
-        access_token = create_access_token(identity=user['id'])
+        access_token = create_access_token(identity=str(user['id']))
         cursor.close()
         conn.close()
         return jsonify(
@@ -226,7 +226,7 @@ def google_signin():
     cursor.close()
     conn.close()
 
-    access_token = create_access_token(identity=user_id)
+    access_token = create_access_token(identity=str(user_id))
 
     return jsonify(
         status='success',

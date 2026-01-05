@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import get_db_connection
 
 articles_bp = Blueprint('articles', __name__)
 
 @articles_bp.route('/api/articles', methods=['GET'])
+@jwt_required()
 def get_articles():
-    """Ambil semua artikel"""
+    """Ambil semua artikel (Hanya untuk user yang login)"""
     try:
         conn = get_db_connection()
         if not conn:
@@ -25,6 +27,7 @@ def get_articles():
 
 
 @articles_bp.route('/api/articles/<int:article_id>', methods=['GET'])
+@jwt_required()
 def get_article(article_id):
     """Ambil detail sebuah artikel"""
     try:
@@ -50,8 +53,9 @@ def get_article(article_id):
 # ==================== ARTICLES FAVORITE ====================
 
 @articles_bp.route('/api/articles/<int:article_id>/favorite', methods=['POST'])
+@jwt_required()
 def favorite_article(article_id):
-    user_id = request.json.get('user_id')
+    user_id = get_jwt_identity() # Ambil ID dari token, bukan dari request body
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -65,12 +69,13 @@ def favorite_article(article_id):
     cursor.close()
     conn.close()
 
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success', 'message': 'Berhasil menambahkan ke favorit'})
 
 
 @articles_bp.route('/api/articles/<int:article_id>/favorite', methods=['DELETE'])
+@jwt_required()
 def unfavorite_article(article_id):
-    user_id = request.json.get('user_id')
+    user_id = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -84,12 +89,13 @@ def unfavorite_article(article_id):
     cursor.close()
     conn.close()
 
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success', 'message': 'Berhasil menghapus dari favorit'})
 
 
 @articles_bp.route('/api/articles/<int:article_id>/favorite/status', methods=['GET'])
+@jwt_required()
 def article_favorite_status(article_id):
-    user_id = request.args.get('user_id')
+    user_id = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -109,9 +115,10 @@ def article_favorite_status(article_id):
 
 
 @articles_bp.route('/api/articles/favorites', methods=['GET'])
+@jwt_required()
 def get_favorite_articles():
     try:
-        user_id = int(request.args.get('user_id'))
+        user_id = get_jwt_identity()
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)

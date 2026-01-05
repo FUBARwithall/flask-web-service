@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import get_db_connection
 import mysql.connector
 from datetime import datetime
@@ -8,6 +9,7 @@ daily_logs_bp = Blueprint('daily_logs', __name__)
 # ==================== FOODS API ====================
 
 @daily_logs_bp.route('/api/foods', methods=['GET'])
+@jwt_required()
 def get_foods():
     """Ambil semua foods"""
     try:
@@ -28,6 +30,7 @@ def get_foods():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/foods/<int:food_id>', methods=['GET'])
+@jwt_required()
 def get_food(food_id):
     """Ambil detail food"""
     try:
@@ -51,6 +54,7 @@ def get_food(food_id):
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/foods', methods=['POST'])
+@jwt_required()
 def create_food():
     """Buat food baru"""
     try:
@@ -100,14 +104,12 @@ def create_food():
 # ==================== DAILY FOOD LOGS API ====================
 
 @daily_logs_bp.route('/api/daily-food-logs', methods=['GET'])
+@jwt_required()
 def get_daily_food_logs():
     """Ambil daily food logs dengan filter"""
     try:
-        user_id = request.args.get('user_id', type=int)
+        user_id = get_jwt_identity() # Proteksi: ambil User ID dari token
         log_date = request.args.get('log_date')
-
-        if not user_id:
-            return jsonify({'status': 'error', 'message': 'user_id wajib'}), 400
 
         conn = get_db_connection()
         if not conn:
@@ -142,17 +144,18 @@ def get_daily_food_logs():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/daily-food-logs', methods=['POST'])
+@jwt_required()
 def create_daily_food_log():
     """Buat daily food log baru"""
     try:
+        user_id = get_jwt_identity()
         data = request.get_json() or {}
-        user_id = data.get('user_id')
         food_id = data.get('food_id')
         quantity = data.get('quantity', 1)
         log_date = data.get('log_date')
 
-        if not user_id or not food_id or not log_date:
-            return jsonify({'status': 'error', 'message': 'user_id, food_id, dan log_date wajib'}), 400
+        if not food_id or not log_date:
+            return jsonify({'status': 'error', 'message': 'food_id dan log_date wajib'}), 400
 
         if quantity <= 0:
             return jsonify({'status': 'error', 'message': 'Quantity harus > 0'}), 400
@@ -190,15 +193,18 @@ def create_daily_food_log():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/daily-food-logs/<int:log_id>', methods=['DELETE'])
+@jwt_required()
 def delete_daily_food_log(log_id):
     """Hapus daily food log"""
     try:
+        user_id = get_jwt_identity()
         conn = get_db_connection()
         if not conn:
             return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
 
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM daily_food_logs WHERE id = %s", (log_id,))
+        # Pastikan user hanya bisa menghapus log milik sendiri
+        cursor.execute("DELETE FROM daily_food_logs WHERE id = %s AND user_id = %s", (log_id, user_id))
         conn.commit()
 
         deleted = cursor.rowcount > 0
@@ -206,7 +212,7 @@ def delete_daily_food_log(log_id):
         conn.close()
 
         if not deleted:
-            return jsonify({'status': 'error', 'message': 'Log tidak ditemukan'}), 404
+            return jsonify({'status': 'error', 'message': 'Log tidak ditemukan atau bukan milik Anda'}), 404
 
         return jsonify({'status': 'success', 'message': 'Log berhasil dihapus'}), 200
     except Exception as e:
@@ -216,6 +222,7 @@ def delete_daily_food_log(log_id):
 # ==================== DRINKS API ====================
 
 @daily_logs_bp.route('/api/drinks', methods=['GET'])
+@jwt_required()
 def get_drinks():
     """Ambil semua drinks"""
     try:
@@ -240,6 +247,7 @@ def get_drinks():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/drinks/<int:drink_id>', methods=['GET'])
+@jwt_required()
 def get_drink(drink_id):
     """Ambil detail drink"""
     try:
@@ -267,6 +275,7 @@ def get_drink(drink_id):
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/drinks', methods=['POST'])
+@jwt_required()
 def create_drink():
     """Buat drink baru"""
     try:
@@ -311,14 +320,12 @@ def create_drink():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/daily-drink-logs', methods=['GET'])
+@jwt_required()
 def get_daily_drink_logs():
     """Ambil daily drink logs dengan filter"""
     try:
-        user_id = request.args.get('user_id', type=int)
+        user_id = get_jwt_identity()
         log_date = request.args.get('log_date')
-
-        if not user_id:
-            return jsonify({'status': 'error', 'message': 'user_id wajib'}), 400
 
         conn = get_db_connection()
         if not conn:
@@ -353,17 +360,18 @@ def get_daily_drink_logs():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/daily-drink-logs', methods=['POST'])
+@jwt_required()
 def create_daily_drink_log(): 
     """Buat daily drink log baru"""
     try:
+        user_id = get_jwt_identity()
         data = request.get_json() or {} 
-        user_id = data.get('user_id') 
         drink_id = data.get('drink_id') 
         quantity = data.get('quantity', 1) 
         log_date = data.get('log_date')
 
-        if not user_id or not drink_id or not log_date:
-            return jsonify({'status': 'error', 'message': 'user_id, drink_id, dan log_date wajib'}), 400
+        if not drink_id or not log_date:
+            return jsonify({'status': 'error', 'message': 'drink_id dan log_date wajib'}), 400
 
         if quantity <= 0:
             return jsonify({'status': 'error', 'message': 'Quantity harus > 0'}), 400
@@ -401,15 +409,17 @@ def create_daily_drink_log():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/daily-drink-logs/<int:log_id>', methods=['DELETE'])
+@jwt_required()
 def delete_daily_drink_log(log_id):
     """Hapus daily drink log"""
     try:
+        user_id = get_jwt_identity()
         conn = get_db_connection()
         if not conn:
             return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
 
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM daily_drink_logs WHERE id = %s", (log_id,))
+        cursor.execute("DELETE FROM daily_drink_logs WHERE id = %s AND user_id = %s", (log_id, user_id))
         conn.commit()
 
         deleted = cursor.rowcount > 0
@@ -417,7 +427,7 @@ def delete_daily_drink_log(log_id):
         conn.close()
 
         if not deleted:
-            return jsonify({'status': 'error', 'message': 'Log tidak ditemukan'}), 404
+            return jsonify({'status': 'error', 'message': 'Log tidak ditemukan atau bukan milik Anda'}), 404
 
         return jsonify({'status': 'success', 'message': 'Log berhasil dihapus'}), 200
     except Exception as e:
@@ -427,14 +437,12 @@ def delete_daily_drink_log(log_id):
 # ==================== DAILY SLEEP LOGS API ====================
 
 @daily_logs_bp.route('/api/daily-sleep-logs', methods=['GET'])
+@jwt_required()
 def get_daily_sleep_logs():
     """Ambil daily sleep logs dengan filter"""
     try:
-        user_id = request.args.get('user_id', type=int)
+        user_id = get_jwt_identity()
         log_date = request.args.get('log_date')
-
-        if not user_id:
-            return jsonify({'status': 'error', 'message': 'user_id wajib'}), 400
 
         conn = get_db_connection()
         if not conn:
@@ -463,16 +471,17 @@ def get_daily_sleep_logs():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/daily-sleep-logs', methods=['POST'])
+@jwt_required()
 def create_daily_sleep_log():
     """Buat daily sleep log baru"""
     try:
+        user_id = get_jwt_identity()
         data = request.get_json() or {}
-        user_id = data.get('user_id')
         log_date = data.get('log_date')
         sleep_hours = data.get('sleep_hours', 0.0)
 
-        if not user_id or not log_date:
-            return jsonify({'status': 'error', 'message': 'user_id dan log_date wajib'}), 400
+        if not log_date:
+            return jsonify({'status': 'error', 'message': 'log_date wajib'}), 400
 
         if sleep_hours < 0 or sleep_hours > 24:
             return jsonify({'status': 'error', 'message': 'Sleep hours harus 0-24'}), 400
@@ -602,14 +611,12 @@ def get_main_triggers(aggregates, skin_load_score):
     return "; ".join(triggers) if triggers else "Tidak ada trigger signifikan"
 
 @daily_logs_bp.route('/api/skin-analysis', methods=['GET'])
+@jwt_required()
 def get_skin_analysis():
     """Ambil skin analysis dengan filter"""
     try:
-        user_id = request.args.get('user_id', type=int)
+        user_id = get_jwt_identity()
         log_date = request.args.get('log_date')
-
-        if not user_id:
-            return jsonify({'status': 'error', 'message': 'user_id wajib'}), 400
 
         conn = get_db_connection()
         if not conn:
@@ -643,15 +650,16 @@ def get_skin_analysis():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/skin-analysis', methods=['POST'])
+@jwt_required()
 def generate_skin_analysis():
     """Generate analisis kulit harian"""
     try:
+        user_id = get_jwt_identity()
         data = request.get_json() or {}
-        user_id = data.get('user_id')
         log_date = data.get('log_date')
 
-        if not user_id or not log_date:
-            return jsonify({'status': 'error', 'message': 'user_id dan log_date wajib'}), 400
+        if not log_date:
+            return jsonify({'status': 'error', 'message': 'log_date wajib'}), 400
 
         # Hitung aggregates
         aggregates = calculate_daily_aggregates(user_id, log_date)
@@ -711,11 +719,10 @@ def generate_skin_analysis():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 @daily_logs_bp.route('/api/skin-analysis/history', methods=['GET'])
+@jwt_required()
 def get_analysis_history():
     try:
-        user_id = request.args.get('user_id', type=int)
-        if not user_id:
-            return jsonify({'success': False, 'message': 'user_id required'}), 400
+        user_id = get_jwt_identity()
 
         conn = get_db_connection()
         if not conn:
