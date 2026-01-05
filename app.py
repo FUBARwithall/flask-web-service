@@ -1,4 +1,4 @@
-﻿from flask import Flask
+﻿from flask import Flask, jsonify
 from flask_cors import CORS
 import resend
 import os
@@ -14,6 +14,21 @@ CORS(app)
 # JWT CONFIG (WAJIB)
 app.config['JWT_SECRET_KEY'] = SECRET_KEY
 jwt = JWTManager(app)
+
+@jwt.unauthorized_loader
+def unauthorized_callback(callback):
+    print(f"DEBUG JWT: Unauthorized - {callback}")
+    return jsonify({'status': 'error', 'message': 'Missing Authorization Header', 'debug': callback}), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(callback):
+    print(f"DEBUG JWT: Invalid Token - {callback}")
+    return jsonify({'status': 'error', 'message': 'Invalid Token', 'debug': callback}), 422
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    print(f"DEBUG JWT: Expired Token")
+    return jsonify({'status': 'error', 'message': 'Token Expired'}), 401
 
 # Upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
