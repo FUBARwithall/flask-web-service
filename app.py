@@ -40,12 +40,14 @@ from articles import articles_bp
 from products import products_bp
 from daily_logs import daily_logs_bp
 from web_admin import web_admin_bp
+from chatbot import chatbot_bp
 from api import api_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(articles_bp)
 app.register_blueprint(products_bp)
 app.register_blueprint(daily_logs_bp)
+app.register_blueprint(chatbot_bp)
 app.register_blueprint(web_admin_bp, url_prefix='/web')
 app.register_blueprint(api_bp, url_prefix='/api')
 
