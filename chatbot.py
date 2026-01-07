@@ -254,3 +254,5 @@ def chat():
     except Exception as e:
         logging.error(f"Server Error: {str(e)}")
         return jsonify({"success": False, "reply": "⚠️ Terjadi kesalahan pada server Glowie."}), 500
+
+        
