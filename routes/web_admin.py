@@ -29,6 +29,9 @@ def uploaded_file(filename):
 @web_admin_bp.route('/login', methods=['GET', 'POST'])
 def web_login():
     """Halaman login untuk admin"""
+    if 'admin_id' in session:
+        return redirect(url_for('web_admin.web_dashboard'))
+        
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
@@ -657,6 +660,323 @@ def web_bulk_delete_products():
         print(f"Error in web_bulk_delete_products: {e}")
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_products'))
+
+# ==================== WEB FOODS ====================
+    
+@web_admin_bp.route('/foods-and-drinks')
+@login_required
+def web_foods_and_drinks():
+    """Halaman manajemen makanan dan minuman"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_dashboard'))
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name, oil, simple_carb, sugar, fiber, fermented FROM foods ORDER BY id DESC")
+        foods = cursor.fetchall()
+        
+        cursor.execute("SELECT id, name, drink_type, sugar FROM drinks ORDER BY id DESC")
+        drinks = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return render_template('web_foods_and_drinks.html', foods=foods, drinks=drinks)
+    except Exception as e:
+        print(f"Error in web_foods_and_drinks: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_dashboard'))
+
+
+@web_admin_bp.route('/foods/create', methods=['GET', 'POST'])
+@login_required
+def web_create_food():
+    """Buat food baru melalui admin dashboard"""
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        oil = request.form.get('oil', '').strip()
+        simple_carb = request.form.get('simple_carb', '').strip()
+        sugar = request.form.get('sugar', '').strip()
+        fiber = request.form.get('fiber', '').strip()
+        fermented = request.form.get('fermented', '').strip()
+
+        if not name or not oil or not simple_carb or not sugar or not fiber or not fermented:
+            flash('Nama, oil, simple_carb, sugar, fiber, dan fermented wajib diisi', 'danger')
+            return redirect(url_for('web_admin.web_create_food'))
+
+        try:
+            conn = get_db_connection()
+            if not conn:
+                flash('Gagal terhubung ke database', 'danger')
+                return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO foods (name, oil, simple_carb, sugar, fiber, fermented) VALUES (%s, %s, %s, %s, %s, %s)", (name, oil, simple_carb, sugar, fiber, fermented))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Makanan berhasil dibuat', 'success')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+        except Exception as e:
+            print(f"Error in web_create_food: {e}")
+            flash('Terjadi kesalahan server', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+    return render_template('web_food_form.html', food=None)
+
+@web_admin_bp.route('/foods/<int:food_id>/edit', methods=['GET', 'POST'])
+@login_required
+def web_edit_food(food_id):
+    """Edit food melalui admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor = conn.cursor(dictionary=True)
+        if request.method == 'POST':
+            name = request.form.get('name', '').strip()
+            oil = request.form.get('oil', '').strip()
+            simple_carb = request.form.get('simple_carb', '').strip()
+            sugar = request.form.get('sugar', '').strip()
+            fiber = request.form.get('fiber', '').strip()
+            fermented = request.form.get('fermented', '').strip()
+
+            if not name or not oil or not simple_carb or not sugar or not fiber or not fermented:
+                flash('Nama, oil, simple_carb, sugar, fiber, dan fermented wajib diisi', 'danger')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('web_admin.web_edit_food', food_id=food_id))
+
+            cursor.execute("UPDATE foods SET name = %s, oil = %s, simple_carb = %s, sugar = %s, fiber = %s, fermented = %s WHERE id = %s", (name, oil, simple_carb, sugar, fiber, fermented, food_id))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Makanan berhasil diperbarui', 'success')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor.execute("SELECT id, name, oil, simple_carb, sugar, fiber, fermented FROM foods WHERE id = %s", (food_id,))
+        food = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not food:
+            flash('Makanan tidak ditemukan', 'warning')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        return render_template('web_food_form.html', food=food)
+    except Exception as e:
+        print(f"Error in web_edit_food: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+
+@web_admin_bp.route('/foods/<int:food_id>/delete', methods=['POST'])
+@login_required
+def web_delete_food(food_id):
+    """Hapus food dari admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM foods WHERE id = %s", (food_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        flash('Makanan berhasil dihapus', 'success')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+    except Exception as e:
+        print(f"Error in web_delete_food: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+@web_admin_bp.route('/foods/bulk-delete', methods=['POST'])
+@login_required
+def web_bulk_delete_foods():
+    """Bulk hapus foods dari admin dashboard"""
+    try:
+        food_ids = request.form.getlist('food_ids')
+
+        if not food_ids:
+            flash('Tidak ada makanan yang dipilih', 'warning')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor = conn.cursor()
+
+        # Create placeholders for the IN clause
+        placeholders = ','.join(['%s'] * len(food_ids))
+        cursor.execute(f"DELETE FROM foods WHERE id IN ({placeholders})", food_ids)
+        deleted_count = cursor.rowcount
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        flash(f'{deleted_count} makanan berhasil dihapus', 'success')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+    except Exception as e:
+        print(f"Error in web_bulk_delete_foods: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+@web_admin_bp.route('/drinks/create', methods=['GET', 'POST'])
+@login_required
+def web_create_drink():
+    """Buat minuman baru melalui admin dashboard"""
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        drink_type = request.form.get('drink_type', '').strip()
+        sugar = request.form.get('sugar', '').strip()
+
+        if not name or not drink_type or not sugar:
+            flash('Nama, jenis minuman, dan gula wajib diisi', 'danger')
+            return redirect(url_for('web_admin.web_create_drink'))
+
+        try:
+            conn = get_db_connection()
+            if not conn:
+                flash('Gagal terhubung ke database', 'danger')
+                return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO drinks (name, drink_type, sugar) VALUES (%s, %s, %s)", (name, drink_type, sugar))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Minuman berhasil dibuat', 'success')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+        except Exception as e:
+            print(f"Error in web_create_drink: {e}")
+            flash('Terjadi kesalahan server', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+    return render_template('web_drink_form.html', drink=None)
+
+@web_admin_bp.route('/drinks/<int:drink_id>/edit', methods=['GET', 'POST'])
+@login_required
+def web_edit_drink(drink_id):
+    """Edit minuman melalui admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor = conn.cursor(dictionary=True)
+        if request.method == 'POST':
+            name = request.form.get('name', '').strip()
+            drink_type = request.form.get('drink_type', '').strip()
+            sugar = request.form.get('sugar', '').strip()
+            
+            if not name or not drink_type or not sugar:
+                flash('Nama, jenis minuman, dan gula wajib diisi', 'danger')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('web_admin.web_edit_drink', drink_id=drink_id)) 
+
+            cursor.execute("UPDATE drinks SET name = %s, drink_type = %s, sugar = %s WHERE id = %s", (name, drink_type, sugar, drink_id))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Minuman berhasil diperbarui', 'success')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor.execute("SELECT id, name, drink_type, sugar FROM drinks WHERE id = %s", (drink_id,))
+        drink = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not drink:
+            flash('Minuman tidak ditemukan', 'warning')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        return render_template('web_drink_form.html', drink=drink)
+    except Exception as e:
+        print(f"Error in web_edit_drink: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+
+@web_admin_bp.route('/drinks/<int:drink_id>/delete', methods=['POST'])
+@login_required
+def web_delete_drink(drink_id):
+    """Hapus minuman dari admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM drinks WHERE id = %s", (drink_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        flash('Minuman berhasil dihapus', 'success')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+    except Exception as e:
+        print(f"Error in web_delete_drink: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+@web_admin_bp.route('/drinks/bulk-delete', methods=['POST'])
+@login_required
+def web_bulk_delete_drinks():
+    """Bulk hapus minuman dari admin dashboard"""
+    try:
+        drink_ids = request.form.getlist('drink_ids')
+
+        if not drink_ids:
+            flash('Tidak ada minuman yang dipilih', 'warning')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+        cursor = conn.cursor()
+
+        # Create placeholders for the IN clause
+        placeholders = ','.join(['%s'] * len(drink_ids))
+        cursor.execute(f"DELETE FROM drinks WHERE id IN ({placeholders})", drink_ids)
+        deleted_count = cursor.rowcount
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        flash(f'{deleted_count} minuman berhasil dihapus', 'success')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+    except Exception as e:
+        print(f"Error in web_bulk_delete_drinks: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
 
 # ==================== WEB SKIN DATA ====================
 

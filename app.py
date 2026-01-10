@@ -1,4 +1,4 @@
-﻿from flask import Flask, jsonify
+﻿from flask import Flask, jsonify, redirect, url_for, send_from_directory
 from flask_cors import CORS
 import resend
 import os
@@ -11,7 +11,10 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 CORS(app)
 
-# JWT CONFIG (WAJIB)
+@app.route('/')
+def index():
+    return redirect(url_for('web_admin.web_login'))
+
 app.config['JWT_SECRET_KEY'] = SECRET_KEY
 jwt = JWTManager(app)
 
@@ -30,18 +33,23 @@ def expired_token_callback(jwt_header, jwt_payload):
     print(f"DEBUG JWT: Expired Token")
     return jsonify({'status': 'error', 'message': 'Token Expired'}), 401
 
-# Upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'analyses'), exist_ok=True)
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    """Serve uploaded images"""
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 # Register blueprints
-from auth import auth_bp
-from articles import articles_bp
-from products import products_bp
-from daily_logs import daily_logs_bp
-from web_admin import web_admin_bp
-from chatbot import chatbot_bp
-from detection import detection_bp
+from routes.auth import auth_bp
+from routes.articles import articles_bp
+from routes.products import products_bp
+from routes.daily_logs import daily_logs_bp
+from routes.web_admin import web_admin_bp
+from routes.chatbot import chatbot_bp
+from routes.detection import detection_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(articles_bp)
@@ -52,4 +60,4 @@ app.register_blueprint(detection_bp)
 app.register_blueprint(web_admin_bp, url_prefix='/web')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
