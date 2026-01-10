@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Makanan & Minuman - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
+    .page-header i { color: #3b82f6; }
+    .header-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .header-info h3 { font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0 0 4px 0; }
+    .header-info p { font-size: 0.9rem; color: #64748b; margin: 0; }
+    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+    .table-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table thead { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
+    .table th:hover { background: #e2e8f0; }
+    .table th.sortable { position: relative; }
+    .table th.sortable::after { content: '↕'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; opacity: 0.5; }
+    .table th.sort-asc::after { content: '↑'; opacity: 1; }
+    .table th.sort-desc::after { content: '↓'; opacity: 1; }
+    .checkbox-column { width: 40px; }
+    .bulk-actions { 
+        display: flex; 
+        gap: 8px; 
+        align-items: center; 
+        padding: 12px 24px; 
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .bulk-actions.hidden { display: none; }
+    .bulk-actions label {
+        font-size: 0.9rem;
+        color: #475569;
+        margin: 0;
+        cursor: pointer;
+        user-select: none;
+        font-weight: 500;
+    }
+    .checkbox-input { 
+        margin: 0; 
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+    }
+    .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .table tbody tr:hover { background: #f8fafc; }
+    .table tbody tr.clickable-row { cursor: pointer; }
+    .image-thumbnail { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+    .empty-state { padding: 60px 20px; text-align: center; }
+    .empty-state i { font-size: 3rem; color: #cbd5e1; }
+    .empty-state p { color: #94a3b8; margin-top: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-utensils"></i> Kelola Makanan dan Minuman</h1>
+</div>
+
+<!-- FOODS SECTION -->
+<div class="header-card">
+    <div class="header-info">
+        <h3>Daftar Makanan</h3>
+        <p>Kelola konten makanan yang tampil di aplikasi</p>
+    </div>
+    <a href="{{ url_for('web_admin.web_create_food') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Buat Makanan
+    </a>
+</div>
+
+<div class="table-card">
+    {% if foods %}
+    <div class="bulk-actions hidden" id="foodBulkActions">
+        <input type="checkbox" id="foodSelectAll" class="checkbox-input">
+        <label for="foodSelectAll" style="font-size: 0.9rem; color: #475569; margin-right: 12px;">Pilih Semua</label>
+        <button type="button" id="foodBulkDeleteBtn" class="btn btn-danger btn-sm" disabled>
+            <i class="fas fa-trash"></i> Hapus Terpilih
+        </button>
+    </div>
+    <table class="table" id="foodsTable">
+        <thead>
+            <tr>
+                <th class="checkbox-column">
+                    <input type="checkbox" id="foodSelectAllHeader" class="checkbox-input">
+                </th>
+                <th class="sortable" data-column="id">ID</th>
+                <th class="sortable" data-column="name">Nama</th>
+                <th class="sortable" data-column="oil">Minyak</th>
+                <th class="sortable" data-column="simple_carb">Karbohidrat</th>
+                <th class="sortable" data-column="sugar">Gula</th>
+                <th class="sortable" data-column="fiber">Serat</th>
+                <th class="sortable" data-column="fermented">Fermentasi</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in foods %}
+            <tr data-url="{{ url_for('web_admin.web_edit_food', food_id=f.id) }}" class="clickable-row">
+                <td>
+                    <input type="checkbox" class="food-row-checkbox checkbox-input" value="{{ f.id }}">
+                </td>
+                <td>#{{ f.id }}</td>
+                <td>{{ f.name }}</td>
+                <td>{{ f.oil }}</td>
+                <td>{{ f.simple_carb }}</td>
+                <td>{{ f.sugar }}</td>
+                <td>{{ f.fiber }}</td>
+                <td>{{ f.fermented }}</td>
+                <td>
+                    <form action="{{ url_for('web_admin.web_delete_food', food_id=f.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus makanan ini?');">
+                        <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>Belum ada makanan</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- DRINKS SECTION -->
+<div class="header-card" style="margin-top: 32px;">
+    <div class="header-info">
+        <h3>Daftar Minuman</h3>
+        <p>Kelola konten minuman yang tampil di aplikasi</p>
+    </div>
+    <a href="{{ url_for('web_admin.web_create_drink') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Buat Minuman
+    </a>
+</div>
+
+<div class="table-card">
+    {% if drinks %}
+    <div class="bulk-actions hidden" id="drinkBulkActions">
+        <input type="checkbox" id="drinkSelectAll" class="checkbox-input">
+        <label for="drinkSelectAll" style="font-size: 0.9rem; color: #475569; margin-right: 12px;">Pilih Semua</label>
+        <button type="button" id="drinkBulkDeleteBtn" class="btn btn-danger btn-sm" disabled>
+            <i class="fas fa-trash"></i> Hapus Terpilih
+        </button>
+    </div>
+    <table class="table" id="drinksTable">
+        <thead>
+            <tr>
+                <th class="checkbox-column">
+                    <input type="checkbox" id="drinkSelectAllHeader" class="checkbox-input">
+                </th>
+                <th class="sortable" data-column="id">ID</th>
+                <th class="sortable" data-column="name">Nama</th>
+                <th class="sortable" data-column="drink_type">Tipe Minuman</th>
+                <th class="sortable" data-column="sugar">Gula</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in drinks %}
+            <tr data-url="{{ url_for('web_admin.web_edit_drink', drink_id=d.id) }}" class="clickable-row">
+                <td>
+                    <input type="checkbox" class="drink-row-checkbox checkbox-input" value="{{ d.id }}">
+                </td>
+                <td>#{{ d.id }}</td>
+                <td>{{ d.name }}</td>
+                <td>{{ d.drink_type }}</td>
+                <td>{{ d.sugar }}</td>   
+                <td>
+                    <form action="{{ url_for('web_admin.web_delete_drink', drink_id=d.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus minuman ini?');">
+                        <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>Belum ada minuman</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // ==================== FOODS TABLE LOGIC ====================
+    const foodsTable = document.getElementById('foodsTable');
+    if (foodsTable) {
+        const foodBulkActions = document.getElementById('foodBulkActions');
+        const foodSelectAllHeader = document.getElementById('foodSelectAllHeader');
+        const foodSelectAll = document.getElementById('foodSelectAll');
+        const foodBulkDeleteBtn = document.getElementById('foodBulkDeleteBtn');
+        const foodRowCheckboxes = document.querySelectorAll('.food-row-checkbox');
+
+        function updateFoodBulkActions() {
+            const checkedBoxes = document.querySelectorAll('.food-row-checkbox:checked');
+            const totalCheckboxes = foodRowCheckboxes.length;
+
+            if (checkedBoxes.length > 0) {
+                foodBulkActions.classList.remove('hidden');
+                foodBulkDeleteBtn.disabled = false;
+                foodBulkDeleteBtn.innerHTML = `<i class="fas fa-trash"></i> Hapus Terpilih (${checkedBoxes.length})`;
+            } else {
+                foodBulkActions.classList.add('hidden');
+                foodBulkDeleteBtn.disabled = true;
+            }
+
+            foodSelectAll.checked = checkedBoxes.length === totalCheckboxes && totalCheckboxes > 0;
+            foodSelectAllHeader.checked = foodSelectAll.checked;
+        }
+
+        if (foodSelectAllHeader) {
+            foodSelectAllHeader.addEventListener('change', () => {
+                const isChecked = foodSelectAllHeader.checked;
+                foodRowCheckboxes.forEach(checkbox => { checkbox.checked = isChecked; });
+                foodSelectAll.checked = isChecked;
+                updateFoodBulkActions();
+            });
+        }
+
+        if (foodSelectAll) {
+            foodSelectAll.addEventListener('change', () => {
+                const isChecked = foodSelectAll.checked;
+                foodRowCheckboxes.forEach(checkbox => { checkbox.checked = isChecked; });
+                foodSelectAllHeader.checked = isChecked;
+                updateFoodBulkActions();
+            });
+        }
+
+        foodRowCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                e.stopPropagation();
+                updateFoodBulkActions();
+            });
+        });
+
+        if (foodBulkDeleteBtn) {
+            foodBulkDeleteBtn.addEventListener('click', () => {
+                const selectedIds = Array.from(document.querySelectorAll('.food-row-checkbox:checked')).map(cb => cb.value);
+                if (selectedIds.length === 0) return;
+
+                if (confirm(`Yakin ingin menghapus ${selectedIds.length} makanan terpilih?`)) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ url_for("web_admin.web_bulk_delete_foods") }}';
+
+                    selectedIds.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'food_ids';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    }
+
+    // ==================== DRINKS TABLE LOGIC ====================
+    const drinksTable = document.getElementById('drinksTable');
+    if (drinksTable) {
+        const drinkBulkActions = document.getElementById('drinkBulkActions');
+        const drinkSelectAllHeader = document.getElementById('drinkSelectAllHeader');
+        const drinkSelectAll = document.getElementById('drinkSelectAll');
+        const drinkBulkDeleteBtn = document.getElementById('drinkBulkDeleteBtn');
+        const drinkRowCheckboxes = document.querySelectorAll('.drink-row-checkbox');
+
+        function updateDrinkBulkActions() {
+            const checkedBoxes = document.querySelectorAll('.drink-row-checkbox:checked');
+            const totalCheckboxes = drinkRowCheckboxes.length;
+
+            if (checkedBoxes.length > 0) {
+                drinkBulkActions.classList.remove('hidden');
+                drinkBulkDeleteBtn.disabled = false;
+                drinkBulkDeleteBtn.innerHTML = `<i class="fas fa-trash"></i> Hapus Terpilih (${checkedBoxes.length})`;
+            } else {
+                drinkBulkActions.classList.add('hidden');
+                drinkBulkDeleteBtn.disabled = true;
+            }
+
+            drinkSelectAll.checked = checkedBoxes.length === totalCheckboxes && totalCheckboxes > 0;
+            drinkSelectAllHeader.checked = drinkSelectAll.checked;
+        }
+
+        if (drinkSelectAllHeader) {
+            drinkSelectAllHeader.addEventListener('change', () => {
+                const isChecked = drinkSelectAllHeader.checked;
+                drinkRowCheckboxes.forEach(checkbox => { checkbox.checked = isChecked; });
+                drinkSelectAll.checked = isChecked;
+                updateDrinkBulkActions();
+            });
+        }
+
+        if (drinkSelectAll) {
+            drinkSelectAll.addEventListener('change', () => {
+                const isChecked = drinkSelectAll.checked;
+                drinkRowCheckboxes.forEach(checkbox => { checkbox.checked = isChecked; });
+                drinkSelectAllHeader.checked = isChecked;
+                updateDrinkBulkActions();
+            });
+        }
+
+        drinkRowCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                e.stopPropagation();
+                updateDrinkBulkActions();
+            });
+        });
+
+        if (drinkBulkDeleteBtn) {
+            drinkBulkDeleteBtn.addEventListener('click', () => {
+                const selectedIds = Array.from(document.querySelectorAll('.drink-row-checkbox:checked')).map(cb => cb.value);
+                if (selectedIds.length === 0) return;
+
+                if (confirm(`Yakin ingin menghapus ${selectedIds.length} minuman terpilih?`)) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ url_for("web_admin.web_bulk_delete_drinks") }}';
+
+                    selectedIds.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'drink_ids';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    }
+
+    // ==================== CLICKABLE ROWS ====================
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.addEventListener('click', (e) => {
+            if (e.target.closest('input[type="checkbox"]') || 
+                e.target.closest('button') || 
+                e.target.closest('form')) {
+                return;
+            }
+            window.location.href = row.dataset.url;
+        });
+    });
+});
+</script>
+{% endblock %}

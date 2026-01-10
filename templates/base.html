@@ -396,8 +396,15 @@
             class="nav-link {% if request.endpoint == 'web_admin.web_products' %}active{% endif %}"
             href="{{ url_for('web_admin.web_products') }}"
           >
-            <i class="fas fa-newspaper"></i>
+            <i class="fas fa-box"></i>
             <span>Kelola Product</span>
+          </a>
+          <a
+            class="nav-link {% if request.endpoint == 'web_admin.web_foods_and_drinks' %}active{% endif %}"
+            href="{{ url_for('web_admin.web_foods_and_drinks') }}"
+          >
+            <i class="fas fa-utensils"></i>
+            <span>Kelola Makanan & Minuman</span>
           </a>
           <a
             class="nav-link {% if request.endpoint == 'web_admin.web_skin_data' %}active{% endif %}"
