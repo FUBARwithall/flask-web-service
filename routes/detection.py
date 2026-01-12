@@ -25,7 +25,7 @@ MODEL_TYPE_PATH = os.path.join(BASE_DIR, 'ml_models', 'model_jeniskulit.keras')
 MODEL_PROBLEM_PATH = os.path.join(BASE_DIR, 'ml_models', 'model_masalah_kulit.keras')
 
 LABELS_TYPE = ['Berminyak', 'Kering', 'Normal'] 
-LABELS_PROBLEM = ['Jerawat', 'Kusam', 'Penuaan']
+LABELS_PROBLEM = ['Berjerawat', 'Dermatitis Perioral atau Ruam', 'Normal']
 
 # File size limit (10MB)
 MAX_FILE_SIZE = 10 * 1024 * 1024
