@@ -114,8 +114,8 @@
                 </td>
                 <td><strong>{{ p.merek }}</strong></td>
                 <td>{{ p.nama }}</td>
-                <td>Rp {{ "{:,.0f}".format(p.harga) }}</td>
-                <td><span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">{{ p.kategori_penyakit }}</span></td>
+                <td>Rp {{ "{:,.0f}".format(p.harga|default(0, true)) }}</td>
+                <td><span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">{{ p.kategori_penyakit or '-' }}</span></td>
                 <td>
                     <form action="{{ url_for('web_admin.web_delete_product', product_id=p.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus produk ini?');">
                         <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>

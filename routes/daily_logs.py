@@ -552,7 +552,7 @@ def calculate_daily_aggregates(user_id, log_date):
         GROUP BY u.id, sl.sleep_hours
     """, (log_date, log_date, log_date, user_id))
 
-    rows = cursor.fetchall()   # 🔑 consume EVERYTHING
+    rows = cursor.fetchall()
     cursor.close()
     conn.close()
 

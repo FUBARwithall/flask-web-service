@@ -542,7 +542,7 @@ def web_edit_product(product_id):
             flash('Gagal terhubung ke database', 'danger')
             return redirect(url_for('web_admin.web_products'))
 
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(dictionary=True, buffered=True)
         if request.method == 'POST':
             merek = request.form.get('merek', '').strip()
             nama = request.form.get('nama', '').strip()
@@ -598,7 +598,9 @@ def web_edit_product(product_id):
 
         return render_template('web_product_form.html', product=product)
     except Exception as e:
+        import traceback
         print(f"Error in web_edit_product: {e}")
+        traceback.print_exc()
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_products'))
 
