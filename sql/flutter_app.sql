@@ -219,6 +219,25 @@ ALTER TABLE `product_favorites`
   ADD CONSTRAINT `fk_fav_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_fav_user_product` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
+-- Table: product_comments
+CREATE TABLE IF NOT EXISTS `product_comments` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `product_id` int(11) NOT NULL,
+    `user_id` int(11) NOT NULL,
+    `parent_id` int(11) DEFAULT NULL,
+    `comment` text NOT NULL,
+    `created_at` timestamp NULL DEFAULT current_timestamp (),
+    PRIMARY KEY (`id`),
+    KEY `fk_product_comment_product` (`product_id`),
+    KEY `fk_product_comment_user` (`user_id`),
+    KEY `fk_product_comment_parent` (`parent_id`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ALTER TABLE `product_comments`
+  ADD CONSTRAINT `fk_product_comment_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_product_comment_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_product_comment_parent` FOREIGN KEY (`parent_id`) REFERENCES `product_comments` (`id`) ON DELETE CASCADE;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
