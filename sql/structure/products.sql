@@ -13,3 +13,10 @@ CREATE TABLE `products` (
     `nomor_registrasi` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- update tipe data efek_samping
+ALTER TABLE products
+MODIFY efek_samping VARCHAR(500)
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci
+NULL;

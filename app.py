@@ -51,6 +51,7 @@ from routes.web_admin import web_admin_bp
 from routes.chatbot import chatbot_bp
 from routes.detection import detection_bp
 from routes.reminders import reminder_bp
+from routes.product_comments import product_comments_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(articles_bp)
@@ -59,6 +60,7 @@ app.register_blueprint(daily_logs_bp)
 app.register_blueprint(chatbot_bp)
 app.register_blueprint(detection_bp)
 app.register_blueprint(reminder_bp)	
+app.register_blueprint(product_comments_bp)
 app.register_blueprint(web_admin_bp, url_prefix='/web')
 
 if __name__ == '__main__':
