@@ -55,7 +55,7 @@ def get_article(article_id):
 @articles_bp.route('/api/articles/<int:article_id>/favorite', methods=['POST'])
 @jwt_required()
 def favorite_article(article_id):
-    user_id = get_jwt_identity() # Ambil ID dari token, bukan dari request body
+    user_id = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()

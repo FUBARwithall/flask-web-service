@@ -26,6 +26,42 @@ def get_products():
         return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
 
 
+@products_bp.route('/api/products/by-category', methods=['GET'])
+@jwt_required()
+def get_products_by_category():
+    """Ambil products berdasarkan kategori penyakit (untuk rekomendasi deteksi)"""
+    try:
+        category = request.args.get('category', '').strip().lower()
+        
+        if not category:
+            return jsonify({'status': 'error', 'message': 'Parameter category diperlukan'}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Gagal terhubung ke database'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        
+        # Search for products where kategori_penyakit contains the category (case-insensitive)
+        cursor.execute("""
+            SELECT id, merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi 
+            FROM products 
+            WHERE LOWER(kategori_penyakit) LIKE %s
+            ORDER BY id DESC
+            LIMIT 10
+        """, (f'%{category}%',))
+        
+        products = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'status': 'success', 'data': products}), 200
+    except Exception as e:
+        print(f"Error in get_products_by_category: {e}")
+        return jsonify({'status': 'error', 'message': 'Terjadi kesalahan server'}), 500
+
+
 @products_bp.route('/api/products/<int:product_id>', methods=['GET'])
 @jwt_required()
 def get_product(product_id):

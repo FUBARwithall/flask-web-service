@@ -16,6 +16,7 @@ def index():
     return redirect(url_for('web_admin.web_login'))
 
 app.config['JWT_SECRET_KEY'] = SECRET_KEY
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = False
 jwt = JWTManager(app)
 
 @jwt.unauthorized_loader
