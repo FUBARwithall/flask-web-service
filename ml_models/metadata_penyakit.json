@@ -1,0 +1,177 @@
+{
+    "kudis": {
+        "nama": "Kudis",
+        "deskripsi": "Kudis, disebut juga scabies atau gudik, adalah infeksi kulit yang disebabkan oleh tungau Sarcoptes scabiei.\nTungau tersebut bereproduksi pada permukaan kulit, lalu masuk ke dalam kulit untuk bertelur, \nsehingga menyebabkan rasa gatal. Timbulnya rasa gatal dan keinginan menggaruk dapat lebih parah di malam hari.",
+        "gejala": [
+            "muncul di area:",
+            "Siku",
+            "Penis",
+            "Pinggang",
+            "Lutut",
+            "Kepala",
+            "Wajah",
+            "Leher",
+            "Telapak tangan",
+            "Telapak kaki"
+        ],
+        "obat": [
+            "* Mengurangi gatal dan peradangan",
+            "Dokter akan meresepkan krim steroid ringan yang dapat meredakan gatal dan peradangan di kulit pasien.",
+            "Pasien juga dapat diberikan antihistamin oral, yang dapat mengurangi gatal sekaligus memperbaiki kualitas tidur pasien.",
+            "* Mengatasi infeksi sekunder",
+            "Gatal akibat kudis bisa mendorong pasien untuk menggaruk kulit sehingga berisiko menimbulkan luka terbuka.",
+            "Hal ini dapat menyebabkan infeksi bakteri di kulit. Pada kondisi tersebut,",
+            "dokter akan meresepkan antibiotik, misalnya mupirocin.",
+            "* Melakukan penanganan mandiri",
+            "Pasien juga dapat melakukan perawatan sederhana di rumah guna mengurangi rasa gatal yang timbul akibat scabies, di antaranya:",
+            "a. Berendam di air dingin atau menempelkan kain basah pada area kulit yang bermasalah, untuk mengurangi rasa gatal",
+            "b. Mengoleskan losion kalamin untuk mengurangi rasa sakit dan gatal, dengan terlebih dahulu berkonsultasi dengan dokter"
+        ]
+    },
+    "varicella": {
+        "nama": "Varicella",
+        "deskripsi": "Varicella adalah suatu penyakit infeksi virus yang disebabkan oleh virus Varicella-Zoster (VZV). Penyakit ini lebih umum dikenal dengan sebutan cacar air atau chickenpox dalam bahasa Inggris. Varicella-Zoster merupakan anggota keluarga virus Herpesviridae.",
+        "gejala": [
+            "Gejala cacar air umumnya baru terlihat 10\u201321 hari setelah terpapar virus Varicella zoster.",
+            "Gejala paling khas dari penyakit ini adalah munculnya bentol yang berisikan cairan atau ruam lepuh di area wajah, leher, perut, atau punggung.",
+            "Demam",
+            "Sakit kepala",
+            "Sakit tenggorokan",
+            "Sakit perut",
+            "Lelah dan lemas (malaise)",
+            "Hilang nafsu makan"
+        ],
+        "obat": [
+            "1.Konsumsi obat penghilang rasa sakit untuk membantu mengurangi demam tinggi dan rasa sakit ketika seseorang menderita cacar air.",
+            "2.Minum banyak cairan, lebih disukai air, untuk mencegah dehidrasi, yang dapat menjadi komplikasi cacar air.",
+            "3.Hindari makanan asin atau pedas. Jika mengunyah terasa sakit, sup bisa menjadi pilihan yang baik, asalkan tidak terlalu panas.",
+            "4.Untuk menghindari gatal bisa menjadi parah, dengan memakai salep, jangan menggaruk luka dan menjaga kuku tetap bersih. Terakhir gunakan   pakaian longgar."
+        ]
+    },
+    "psoriasis": {
+        "nama": "Psoriasis",
+        "deskripsi": "Psoriasis adalah peradangan pada kulit yang menyebabkan kulit bersisik, menebal, mudah terkelupas, dan kadang juga terasa gatal. Psoriasis biasanya muncul di kulit bagian lutut, siku, punggung bagian bawah, dan kulit kepala.",
+        "gejala": [
+            "Plak berwarna merah yang ditutupi sisik putih keperakan",
+            "Kulit terasa kering dan pecah-pecah, bahkan bisa sampai berdarah",
+            "Gatal, perih, atau sensasi terbakar di area yang terkena",
+            "Kulit kepala tampak merah, kering, bersisik tebal",
+            "Muncul serpihan mirip ketombe yang membandel",
+            "Gatal, nyeri, dan kadang terasa sensasi terbakar",
+            "Rambut mudah rontok, terutama jika kulit kepala sering digaruk",
+            "Kuku menebal, berubah warna menjadi kuning, kecoklatan, atau kehijauan",
+            "Muncul lubang-lubang kecil (pitting) pada permukaan kuku",
+            "Kuku rapuh, mudah terlepas dari kulit di bawahnya (onikolisis)",
+            "Kadang terjadi penumpukan sisa kulit di bawah kuku, sehingga kuku terangkat"
+        ],
+        "obat": [
+            "1.Perawatan topikal",
+            "Pemakaian obat krim atau salep yang mengandung mengandung bahan aktif. Misalnya, seperti kortikosteroid, salisilat, atau vitamin D analog.",
+            "Fungsinya untuk mengurangi peradangan dan mengontrol gejala kondisi ini.",
+            "2. Keratolitik",
+            "Keratolitik adalah jenis obat yang digunakan dalam pengobatan psoriasis untuk membantu mengatasi masalah penumpukan sel-sel kulit mati yang berlebihan pada pengidapnya.",
+            "3. Terapi Cahaya (Phototherapy)",
+            "Dokter juga bisa merekomendasikan terapi cahaya UVB (ultraviolet B) atau PUVA (psoralen dan ultraviolet A).",
+            "Tujuannya untuk membantu mengendalikan gejalanya dengan menargetkan area kulit yang terkena.",
+            "4. Obat-obatan Sistemik",
+            "Dokter juga bisa meredakan psoriasis dengan memberikan obat sistemik, seperti",
+            "Methotrexate untuk meredakan peradangan dan menghambat pertumbuhan sel-sel kulit berlebihan. Sering dokter resepkan untuk kasus yang parah."
+        ]
+    },
+    "impetigo": {
+        "nama": "Impetigo",
+        "deskripsi": "Impetigo adalah infeksi kulit menular yang banyak menyerang bayi dan anak-anak. \nInfeksi ini ditandai munculnya bercak merah dan lepuhan pada area kulit, terutama pada bagian wajah,\ntangan, dan kaki. Impetigo bukan menjadi masalah kesehatan yang serius,\ntetapi penyebaran penyakit ini terjadi dengan begitu cepat. \nInfeksi akibat impetigo bisa menyerang kulit yang sehat (impetigo primer).\nSelain itu, masalah kesehatan ini juga bisa disebabkan oleh kondisi lain (impetigo sekunder),\nmisalnya eksim atopik.",
+        "gejala": [
+            "Bercak kemerahan yang terasa gatal di sekitar mulut dan hidung, tetapi tidak menimbulkan nyeri",
+            "Luka pada bercak akibat digaruk",
+            "Iritasi pada kulit di sekitar luka",
+            "Koreng berwarna kuning kecokelatan di sekitar luka",
+            "Bekas kemerahan di kulit akibat koreng yang dapat hilang dalam jangka waktu beberapa hari atau minggu",
+            "Lepuhan berisi cairan bening di bagian tubuh antara leher dan pinggang, serta lengan dan tungkai",
+            "Nyeri di area lepuhan dan gatal pada kulit di sekitarnya",
+            "Lepuhan pecah, menyebar, dan menimbulkan koreng berwarna kekuningan, tetapi akan menghilang setelah beberapa hari"
+        ],
+        "obat": [
+            "* Salep atau krim antibiotik, seperti tetracycline, mupirocin atau polymyxin B, digunakan",
+            "jika infeksi hanya menyerang satu area tubuh dan belum menyebar terlalu luas.",
+            "Sebelum mengoleskan krim atau krim antibiotik, dianjurkan untuk merendam luka dengan air hangat",
+            "atau mengompres hangat untuk melunakkan koreng.",
+            "* Jika impetigo bertambah parah dan mulai menyebar ke bagian tubuh lainnya,",
+            "dokter akan memberikan antibiotik dalam bentuk tablet, seperti clindamycin, roxithromycin,",
+            "atau antibiotik golongan sefalosporin.",
+            "* Tablet antibiotik juga diberikan jika krim atau salep tidak lagi efektif mengobati impetigo.",
+            "Penting untuk diingat, jangan menghentikan konsumsi obat tanpa seizin dokter meskipun gejalanya sudah membaik,",
+            "agar infeksi tidak kambuh."
+        ]
+    },
+    "vitiligo": {
+        "nama": "Vitiligo",
+        "deskripsi": "Vitiligo adalah penyakit yang menyebabkan terbentuknya bercak-bercak putih pada kulit yang dapat terjadi pada segala usia, \nTapi, umumnya, menyasar pengidap berusia di bawah 20 tahun. \nVitiligo juga terbagi ke dalam dua kategori, yaitu vitiligo menyeluruh yang menyerang kedua sisi tubuh\ndan vitiligo yang hanya terjadi pada bagian-bagian tertentu atau salah satu sisi tubuh saja.",
+        "gejala": [
+            "Muncul bintik atau bercak kulit berwarna terang",
+            "Bercak kulit meluas",
+            "Bercak kulit terasa gatal",
+            "Muncul uban pada rambut",
+            "Perubahan warna mata"
+        ],
+        "obat": [
+            "Vitiligo tidak bisa disembuhkan. Namun, dokter dapat memberikan tindakan medis untuk",
+            "memperlambat atau menghentikan perubahan warna kulit. Penanganan vitiligo juga bertujuan",
+            "untuk menyeragamkan warna bercak vitiligo dengan warna kulit di sekitarnya semaksimal mungkin.",
+            "Penanganan vitiligo tergantung pada usia pasien, seberapa luas area yang terkena vitiligo,",
+            "seberapa cepat penyebarannya, dan pengaruh vitiligo terhadap kualitas hidup pasien.",
+            "Untuk perawatan awal, dokter akan menganjurkan pasien untuk terlebih dahulu menggunakan",
+            "tanning lotion atau losion penggelap kulit. Dokter juga akan menyarankan pasien memakai tabir surya",
+            "dengan SPF 30 atau lebih untuk mencegah kerusakan kulit yang lebih parah akibat paparan sinar matahari."
+        ]
+    },
+    "kurap": {
+        "nama": "Kurap",
+        "deskripsi": "Penyakit kulit yang sering disebut sebagai \"kurap\" adalah infeksi jamur pada kulit, yang juga dikenal sebagai tinea. Tinea bisa menyerang berbagai bagian tubuh, dan nama spesifiknya akan berbeda tergantung pada area yang terkena.",
+        "gejala": [
+            "Muncul ruam berbentuk cincin yang memiliki tepi menonjol",
+            "Bagian dalam cincin tampak bersih atau bersisik",
+            "Kulit terasa sangat gatal",
+            "Kulit kering dan pecah-pecah di telapak tangan",
+            "Infeksi kuku",
+            "Muncul ruam berbentuk cincin di punggung tangan",
+            "Kulit kering dan bersisik",
+            "Kulit mengelupas",
+            "Gatal, terbakar, dan perih di telapak kaki dan sela-sela jari kaki",
+            "Kulit pecah-pecah yang terasa sakit dan berdarah",
+            "Kulit di sela-sela jari kaki berubah warna menjadi putih serta terasa lembek",
+            "Kaki berbau tidak sedap"
+        ],
+        "obat": [
+            "* Bersihkan Area Terinfeksi:",
+            "Bersihkan area yang terinfeksi dengan lembut menggunakan sabun ringan dan air.",
+            "* Gunakan Obat Antijamur Topikal:",
+            "Gunakan obat antijamur topikal yang diresepkan oleh dokter atau yang tersedia bebas di apotek.",
+            "* Hindari Garukan:",
+            "Hindari menggaruk area yang terinfeksi untuk mencegah penyebaran infeksi dan memperburuk kondisi kulit.",
+            "* Lakukan Konsultasi dengan Dokter:",
+            "Jika gejala tidak membaik setelah penggunaan obat antijamur topikal atau jika infeksi semakin parah, segera konsultasikan dengan dokter."
+        ]
+    },
+    "eksim": {
+        "nama": "Eksim",
+        "deskripsi": "Eksim adalah istilah terkait gangguan pembengkakan pada kulit, Gangguan ini disebut juga dengan dermatitis Saat terjadi reaksi alergi pada kulit dapat ditandai dengan timbulnya warna kemerahan, ruam, dan rasa gatal.",
+        "gejala": [
+            "Kulit menjadi lebih tebal dan pecah-pecah",
+            "Kulit kering dan bersisik",
+            "Kulit bengkak atau muncul benjolan kecil berisi cairan dan dapat pecah kapan saja, terutama jika digaruk"
+        ],
+        "obat": [
+            "*Penggunaan Krim atau Salep Topikal:",
+            "Kortikosteroid topikal: Mengurangi peradangan dan gatal pada kulit.",
+            "Kalsineurin inhibitor topikal: Digunakan pada kasus tertentu eksim dan membantu mengurangi peradangan.",
+            "*Emolien (Pelembap):",
+            "Menggunakan pelembap secara teratur untuk menjaga kelembapan kulit dan mencegah kekeringan.",
+            "*Perawatan Kompres Dingin:",
+            "Kompres dingin dapat membantu mengurangi gatal dan peradangan pada kulit.",
+            "*Pengobatan Obat:",
+            "Antihistamin: Digunakan untuk mengurangi gatal.",
+            "Obat antiinflamasi nonsteroid (NSAID): Bisa digunakan untuk mengurangi peradangan dan nyeri."
+        ]
+    }
+}

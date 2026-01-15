@@ -74,7 +74,7 @@ def serve_history_image(filename):
 # ======================================================
 # GET HISTORY DETAIL
 # ======================================================
-@history_bp.route('/<int:analysis_id>', methods=['GET'])
+@history_bp.route('/<string:analysis_id>', methods=['GET'])
 @jwt_required()
 def get_history_detail(analysis_id):
     user_id = get_jwt_identity()
@@ -150,7 +150,7 @@ def get_history_detail(analysis_id):
 # ======================================================
 # DELETE HISTORY (HARD DELETE)
 # ======================================================
-@history_bp.route('/<int:analysis_id>', methods=['DELETE'])
+@history_bp.route('/<string:analysis_id>', methods=['DELETE'])
 @jwt_required()
 def delete_history(analysis_id):
     user_id = get_jwt_identity()
@@ -216,7 +216,7 @@ def delete_history(analysis_id):
 # ======================================================
 # SHARE HISTORY
 # ======================================================
-@history_bp.route('/<int:analysis_id>/share', methods=['POST'])
+@history_bp.route('/<string:analysis_id>/share', methods=['POST'])
 @jwt_required()
 def share_history(analysis_id):
     user_id = get_jwt_identity()

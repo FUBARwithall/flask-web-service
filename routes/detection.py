@@ -23,9 +23,13 @@ detection_bp = Blueprint('detection', __name__, url_prefix='/api/detection')
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_TYPE_PATH = os.path.join(BASE_DIR, 'ml_models', 'model_jeniskulit.keras')
 MODEL_PROBLEM_PATH = os.path.join(BASE_DIR, 'ml_models', 'model_masalah_kulit.keras')
+MODEL_BODY_PATH = os.path.join(BASE_DIR, 'ml_models', 'model_penyakit_tubuh.keras')
+METADATA_BODY_PATH = os.path.join(BASE_DIR, 'ml_models', 'metadata_penyakit.json')
 
 LABELS_TYPE = ['Berminyak', 'Kering', 'Normal'] 
 LABELS_PROBLEM = ['Berjerawat', 'Dermatitis Perioral atau Ruam', 'Normal']
+# Labels for body skin disease (alphabetically sorted as per Keras convention)
+LABELS_BODY = ['eksim', 'impetigo', 'kudis', 'kurap', 'psoriasis', 'varicella', 'vitiligo']
 
 # File size limit (10MB)
 MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -33,6 +37,8 @@ MAX_FILE_SIZE = 10 * 1024 * 1024
 # Global model cache
 _model_type = None
 _model_problem = None
+_model_body = None
+_metadata_body = None
 _clahe = None
 
 def get_clahe():
@@ -65,6 +71,30 @@ def load_problem_model():
         _model_problem = keras.saving.load_model(MODEL_PROBLEM_PATH, compile=False)
         print("✅ Skin Problem model loaded")
     return _model_problem
+
+def load_body_model():
+    """Lazy load body skin disease model"""
+    global _model_body
+    if _model_body is None:
+        if not os.path.exists(MODEL_BODY_PATH):
+            raise FileNotFoundError(f"Body model not found: {MODEL_BODY_PATH}")
+        
+        print("📥 Loading Body Skin Disease model...")
+        _model_body = keras.saving.load_model(MODEL_BODY_PATH, compile=False)
+        print("✅ Body Skin Disease model loaded")
+    return _model_body
+
+def load_body_metadata():
+    """Lazy load body disease metadata"""
+    global _metadata_body
+    if _metadata_body is None:
+        if not os.path.exists(METADATA_BODY_PATH):
+            raise FileNotFoundError(f"Metadata not found: {METADATA_BODY_PATH}")
+        
+        with open(METADATA_BODY_PATH, 'r', encoding='utf-8') as f:
+            _metadata_body = json.load(f)
+        print("✅ Body disease metadata loaded")
+    return _metadata_body
 
 def allowed_file(filename):
     """Validate file extension"""
@@ -157,7 +187,8 @@ def health():
         'status': 'ok',
         'models_loaded': {
             'type': _model_type is not None,
-            'problem': _model_problem is not None
+            'problem': _model_problem is not None,
+            'body': _model_body is not None
         }
     })
 
@@ -311,4 +342,217 @@ def get_user_history():
         return jsonify({
             'success': False,
             'message': f'Error retrieving history: {str(e)}'
+        }), 500
+
+
+# ============================================
+# BODY SKIN DISEASE DETECTION
+# ============================================
+
+def save_body_analysis_to_db(user_id, analysis_data):
+    """Save body skin analysis results to database (runs in background thread)"""
+    conn = get_db_connection()
+    if not conn:
+        print("ERROR: Could not connect to database for saving body analysis")
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        
+        query = """
+            INSERT INTO body_analyses 
+            (id, user_id, timestamp, image_filename, image_url,
+             disease_key, disease_name, confidence, all_predictions)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        
+        values = (
+            analysis_data['analysis_id'],
+            user_id,
+            analysis_data['timestamp'],
+            analysis_data['image_filename'],
+            analysis_data['image_url'],
+            analysis_data['disease_analysis']['disease_key'],
+            analysis_data['disease_analysis']['disease_info']['nama'],
+            float(analysis_data['disease_analysis']['confidence'].rstrip('%')),
+            json.dumps(analysis_data['disease_analysis']['all_predictions'])
+        )
+        
+        cursor.execute(query, values)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"✅ Body analysis {analysis_data['analysis_id']} saved to database for user {user_id}")
+        return True
+    except Exception as e:
+        print(f"❌ Error saving body analysis to database: {e}")
+        if conn:
+            conn.close()
+        return False
+
+
+@detection_bp.route('/detect-body', methods=['POST'])
+@jwt_required()
+def detect_body_disease():
+    """Detect skin disease on body parts using ML model"""
+    # Get user_id from JWT token
+    user_id = get_jwt_identity()
+    
+    # Validate request
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file part'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'}), 400
+
+    if not allowed_file(file.filename):
+        return jsonify({'success': False, 'message': 'File type not allowed'}), 400
+
+    # Validate file size
+    file.seek(0, 2)  # Seek to end
+    file_size = file.tell()
+    file.seek(0)  # Reset to beginning
+    
+    if file_size > MAX_FILE_SIZE:
+        return jsonify({'success': False, 'message': 'File too large (max 10MB)'}), 400
+
+    # Generate unique identifiers
+    analysis_id = str(uuid.uuid4())
+    timestamp = datetime.utcnow().isoformat() + 'Z'
+    
+    # Create body_analyses folder if it doesn't exist
+    body_folder = os.path.join(UPLOAD_FOLDER, 'body_analyses')
+    os.makedirs(body_folder, exist_ok=True)
+    
+    # Save with unique filename (preserves extension)
+    file_ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+    saved_filename = f"{analysis_id}.{file_ext}"
+    saved_filepath = os.path.join(body_folder, saved_filename)
+    
+    try:
+        file.save(saved_filepath)
+        
+        # Load model and metadata
+        m_body = load_body_model()
+        metadata = load_body_metadata()
+        
+        # Preprocess image
+        img_array = preprocess_image(saved_filepath)
+        
+        # Run prediction
+        predictions = m_body.predict(img_array, verbose=0)[0]
+        class_idx = int(np.argmax(predictions))
+        confidence = float(predictions[class_idx])
+        disease_key = LABELS_BODY[class_idx]
+        
+        # Get disease info from metadata
+        disease_info = metadata.get(disease_key, {
+            'nama': disease_key.capitalize(),
+            'deskripsi': 'Informasi tidak tersedia',
+            'gejala': [],
+            'obat': []
+        })
+        
+        # Build all predictions dict
+        all_predictions = {
+            LABELS_BODY[i]: round(float(predictions[i]) * 100, 2) 
+            for i in range(len(LABELS_BODY))
+        }
+        
+        # Image URL for frontend (relative path)
+        image_url = f'/static/uploads/body_analyses/{saved_filename}'
+        
+        # Prepare response data
+        analysis_data = {
+            'success': True,
+            'analysis_id': analysis_id,
+            'timestamp': timestamp,
+            'image_url': image_url,
+            'image_filename': saved_filename,
+            'disease_analysis': {
+                'disease_key': disease_key,
+                'confidence': f"{confidence * 100:.2f}%",
+                'all_predictions': all_predictions,
+                'disease_info': {
+                    'nama': disease_info.get('nama', disease_key.capitalize()),
+                    'deskripsi': disease_info.get('deskripsi', ''),
+                    'gejala': disease_info.get('gejala', []),
+                    'obat': disease_info.get('obat', [])
+                }
+            }
+        }
+        
+        # Save to database in background thread (non-blocking)
+        threading.Thread(
+            target=save_body_analysis_to_db, 
+            args=(user_id, analysis_data),
+            daemon=True
+        ).start()
+        
+        return jsonify(analysis_data)
+
+    except FileNotFoundError as e:
+        # Clean up file if it exists
+        if os.path.exists(saved_filepath):
+            os.remove(saved_filepath)
+        return jsonify({
+            'success': False, 
+            'message': f'Model file not found: {str(e)}'
+        }), 500
+        
+    except Exception as e:
+        # Clean up file if it exists
+        if os.path.exists(saved_filepath):
+            os.remove(saved_filepath)
+        return jsonify({
+            'success': False, 
+            'message': f'Error during prediction: {str(e)}'
+        }), 500
+
+
+@detection_bp.route('/body-history', methods=['GET'])
+@jwt_required()
+def get_body_history():
+    """Get body disease detection history for the authenticated user"""
+    user_id = get_jwt_identity()
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT id, timestamp, image_url, disease_key, disease_name, confidence
+            FROM body_analyses
+            WHERE user_id = %s
+            ORDER BY timestamp DESC
+            LIMIT 50
+        """, (user_id,))
+        
+        results = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'history': [
+                {
+                    'analysis_id': row['id'],
+                    'timestamp': row['timestamp'],
+                    'image_url': row['image_url'].replace('/uploads/', '/static/uploads/'),
+                    'disease_key': row['disease_key'],
+                    'disease_name': row['disease_name'],
+                    'confidence': row['confidence']
+                }
+                for row in results
+            ]
+        })
+    except Exception as e:
+        if conn:
+            conn.close()
+        return jsonify({
+            'success': False,
+            'message': f'Error retrieving body history: {str(e)}'
         }), 500
