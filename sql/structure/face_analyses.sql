@@ -10,5 +10,6 @@ CREATE TABLE face_analyses (
     skin_problem VARCHAR(50),
     skin_problem_confidence FLOAT,
     skin_problem_predictions JSON,
+    notes TEXT, //terbaru
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
