@@ -228,6 +228,55 @@
         padding: 24px;
     }
 
+    /* Chart Styles */
+    .charts-section {
+        margin-top: 32px;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .chart-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .chart-card h3 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chart-card h3 i {
+        color: #3b82f6;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 350px;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .content-grid {
@@ -242,6 +291,10 @@
             grid-template-columns: 1fr;
         }
 
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+
         .table {
             font-size: 0.85rem;
         }
@@ -249,6 +302,10 @@
         .table th,
         .table td {
             padding: 12px 16px;
+        }
+
+        .chart-container {
+            height: 300px;
         }
     }
 </style>
@@ -258,6 +315,81 @@
         <i class="fas fa-tachometer-alt"></i>
         Dashboard
     </h1>
+</div>
+
+<!-- Quick Actions & Tasks -->
+<div class="quick-actions" style="margin-bottom: 32px;">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-bolt"></i> Quick Actions
+        </div>
+        <div class="actions-grid">
+            <div class="action-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="width: 45px; height: 45px; background: #dbeafe; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #3b82f6;">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: #1e293b;">Analisis Sentimen</div>
+                        <div style="font-size: 0.8rem; color: #64748b;">{{ pending_comments }} komentar belum diklasifikasi</div>
+                    </div>
+                </div>
+                <button id="btnClassifyAll" class="btn btn-primary btn-sm" {% if pending_comments == 0 %}disabled{% endif %}>
+                    <i class="fas fa-magic"></i> Jalankan Batch
+                </button>
+            </div>
+            <!-- Future actions can be added here -->
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-section">
+    <div class="charts-grid">
+        <!-- Skin Type Distribution Chart -->
+        <div class="chart-card">
+            <h3>
+                <i class="fas fa-chart-pie"></i>
+                Distribusi Jenis Kulit
+            </h3>
+            <div class="chart-container">
+                <canvas id="skinTypeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Skin Problem Distribution Chart -->
+        <div class="chart-card">
+            <h3>
+                <i class="fas fa-chart-bar"></i>
+                Distribusi Masalah Kulit Wajah
+            </h3>
+            <div class="chart-container">
+                <canvas id="skinProblemChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Body Disease Chart -->
+        <div class="chart-card full-width">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                Distribusi Penyakit Kulit Tubuh
+            </h3>
+            <div class="chart-container">
+                <canvas id="bodyDiseaseChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Sentiment Analysis Chart -->
+        <div class="chart-card full-width">
+            <h3>
+                <i class="fas fa-smile-beam"></i>
+                Sentimen Komentar Produk
+            </h3>
+            <div class="chart-container">
+                <canvas id="sentimentChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Statistics Cards -->
@@ -295,5 +427,273 @@
         <div class="stat-label">Jenis Kondisi Kulit</div>
     </div>
 </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script type="application/json" id="faceTypeData">{{ face_type_stats | tojson | safe }}</script>
+<script type="application/json" id="faceProblemData">{{ face_problem_stats | tojson | safe }}</script>
+<script type="application/json" id="bodyDiseaseData">{{ body_disease_stats | tojson | safe }}</script>
+<script type="application/json" id="sentimentData">{{ sentiment_stats | tojson | safe }}</script>
+<input type="hidden" id="hasSentimentStats" value="{{ 'true' if sentiment_stats|length > 0 else 'false' }}">
+<script>
+    // Get data from JSON script tags
+    const faceTypeData = JSON.parse(document.getElementById('faceTypeData').textContent || '[]');
+    const faceProblemData = JSON.parse(document.getElementById('faceProblemData').textContent || '[]');
+    const bodyDiseaseData = JSON.parse(document.getElementById('bodyDiseaseData').textContent || '[]');
+    const sentimentData = JSON.parse(document.getElementById('sentimentData').textContent || '[]');
+
+    // Process data for charts
+    function processData(data) {
+        const labels = data.map(item => item[0] || item.skin_type || item.skin_problem || item.disease_name || item.sentiment);
+        const values = data.map(item => item[1] || item.count);
+        return { labels, values };
+    }
+
+    // Color palettes
+    const colorPalette1 = ['#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe', '#bfdbfe'];
+    const colorPalette2 = ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe', '#f5f3ff'];
+    const colorPalette3 = ['#ec4899', '#f472b6', '#f9a8d4', '#fbcfe8', '#fce7f3', '#fdf2f8'];
+
+    // Skin Type Pie Chart
+    if (faceTypeData && faceTypeData.length > 0) {
+        const skinTypeProcessed = processData(faceTypeData);
+        const ctx1 = document.getElementById('skinTypeChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: skinTypeProcessed.labels,
+                datasets: [{
+                    data: skinTypeProcessed.values,
+                    backgroundColor: colorPalette1,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Skin Problem Bar Chart
+    if (faceProblemData && faceProblemData.length > 0) {
+        const skinProblemProcessed = processData(faceProblemData);
+        const ctx2 = document.getElementById('skinProblemChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: skinProblemProcessed.labels,
+                datasets: [{
+                    label: 'Jumlah Kasus',
+                    data: skinProblemProcessed.values,
+                    backgroundColor: colorPalette2,
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Jumlah: ${context.parsed.y} kasus`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 11 } },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        ticks: { font: { size: 11 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Body Disease Horizontal Bar Chart
+    if (bodyDiseaseData && bodyDiseaseData.length > 0) {
+        const bodyDiseaseProcessed = processData(bodyDiseaseData);
+        const ctx3 = document.getElementById('bodyDiseaseChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: bodyDiseaseProcessed.labels,
+                datasets: [{
+                    label: 'Jumlah Kasus',
+                    data: bodyDiseaseProcessed.values,
+                    backgroundColor: colorPalette3,
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Jumlah: ${context.parsed.x} kasus`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 11 } },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    y: {
+                        ticks: { font: { size: 11 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Sentiment Chart
+    if (sentimentData && sentimentData.length > 0) {
+        // Aggregate raw results into standardized categories
+        const aggregated = {};
+        sentimentData.forEach(item => {
+            let label = String(item[0] || item.sentiment).toLowerCase();
+            let count = item[1] || item.count;
+            
+            // Standardize labels (handle raw strings like "{'negative': 0.9}")
+            let category = 'Neutral';
+            if (label.includes('pos')) category = 'Positive';
+            else if (label.includes('neg')) category = 'Negative';
+            
+            aggregated[category] = (aggregated[category] || 0) + count;
+        });
+
+        const labels = Object.keys(aggregated);
+        const values = Object.values(aggregated);
+        const ctx4 = document.getElementById('sentimentChart').getContext('2d');
+        
+        // Define colors based on categories
+        const categoryColors = {
+            'Positive': '#10b981',
+            'Negative': '#ef4444',
+            'Neutral': '#3b82f6'
+        };
+        const colors = labels.map(l => categoryColors[l] || '#64748b');
+
+        new Chart(ctx4, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            font: { size: 12, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.parsed} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    // Manual Classification Trigger
+    const btnClassifyAll = document.getElementById('btnClassifyAll');
+    if (btnClassifyAll) {
+        btnClassifyAll.addEventListener('click', async () => {
+            const hasExisting = document.getElementById('hasSentimentStats').value === 'true';
+            let force = false;
+            
+            if (hasExisting) {
+                const choice = confirm('Ingin mengklasifikasi komentar baru saja (OK) atau re-proses SEMUA komentar untuk memperbaiki data (Cancel)?');
+                force = !choice;
+            } else {
+                if (!confirm('Apakah Anda yakin ingin mengklasifikasi semua komentar baru?')) return;
+            }
+
+            btnClassifyAll.disabled = true;
+            btnClassifyAll.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+            try {
+                const response = await fetch('/api/classify/batch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ force: force })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Berhasil! ${result.processed} komentar telah diklasifikasi.`);
+                    location.reload();
+                } else {
+                    alert('Gagal: ' + (result.message || 'Terjadi kesalahan'));
+                    btnClassifyAll.disabled = false;
+                    btnClassifyAll.innerHTML = '<i class="fas fa-magic"></i> Jalankan Batch';
+                }
+            } catch (error) {
+                console.error('Error during classification:', error);
+                alert('Terjadi kesalahan koneksi');
+                btnClassifyAll.disabled = false;
+                btnClassifyAll.innerHTML = '<i class="fas fa-magic"></i> Jalankan Batch';
+            }
+        });
+    }
+</script>
 
 {% endblock %}

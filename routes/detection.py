@@ -614,7 +614,7 @@ def get_body_history_detail(analysis_id):
                 disease_name,
                 confidence,
                 all_predictions,
-                note
+                notes
             FROM body_analyses
             WHERE id = %s AND user_id = %s
         """, (analysis_id, user_id))
@@ -667,7 +667,7 @@ def get_body_history_detail(analysis_id):
                     'obat': disease_info.get('obat', [])
                 }
             },
-            'note': row.get('note')
+            'notes': row.get('notes')
         }
         
         conn.close()
@@ -721,7 +721,7 @@ def update_body_notes(analysis_id):
         # Update note
         cursor.execute("""
             UPDATE body_analyses
-            SET note = %s
+            SET notes = %s
             WHERE id = %s AND user_id = %s
         """, (notes if notes else None, analysis_id, user_id))
         
@@ -732,7 +732,7 @@ def update_body_notes(analysis_id):
         return jsonify({
             'success': True,
             'message': 'Note updated successfully',
-            'note': notes if notes else None
+            'notes': notes if notes else None
         }), 200
         
     except Exception as e:

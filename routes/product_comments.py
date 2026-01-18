@@ -14,6 +14,7 @@ def get_nested_replies(conn, product_id, parent_id):
             c.user_id,
             u.name AS user_name,
             c.comment,
+            c.sentiment,
             c.created_at,
             c.parent_id,
             p_user.name AS parent_user_name
@@ -53,6 +54,7 @@ def get_comments(product_id):
                 c.user_id,
                 u.name AS user_name,
                 c.comment,
+                c.sentiment,
                 c.created_at,
                 c.parent_id
             FROM product_comments c
@@ -73,11 +75,6 @@ def get_comments(product_id):
         
         cursor.close()
         conn.close()
-
-        return jsonify({'success': True, 'data': comments}), 200
-    except Exception as e:
-        print(f"Error getting comments: {e}")
-        return jsonify({'success': False, 'message': 'Terjadi kesalahan server'}), 500
 
         return jsonify({'success': True, 'data': comments}), 200
     except Exception as e:
