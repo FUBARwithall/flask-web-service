@@ -5,7 +5,9 @@ import numpy as np
 import re
 import pickle
 from threading import Lock
+from models import get_db_connection
 from sentence_transformers import SentenceTransformer
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from huggingface_hub import hf_hub_download, InferenceClient
 
 chatbot_bp = Blueprint('chatbot', __name__, url_prefix='/api/chatbot')
@@ -33,12 +35,13 @@ THANKS_KEYWORDS = [
 ]
 
 SKIN_KEYWORDS = [
-    "jerawat", "komedo", "bruntusan", "eksim", "gatal", 
+    "jerawat", "jerawat berminyak", "komedo", "bruntusan", "eksim", "gatal", 
     "ruam", "iritasi", "alergi kulit", "panu", "kulit kering", "dermatitis",
     "biang keringat", "psoriasis", "vitiligo", "kurap", "kudis", "flek hitam",
     "bekas jerawat", "stretch mark", "ketombe", "rambut rontok", "rosacea",
     "melasma", "herpes", "kutil", "scabies", "urtikaria", "biduran",
-    "wajah berminyak", "kulit berminyak", "kulit sensitif", "kulit kusam"
+    "wajah berminyak", "kulit berminyak", "kulit sensitif", "kulit kusam",  
+    "pori tersumbat", "sebum berlebih"
 ]
 
 BLACKLIST_KEYWORDS = [
@@ -88,7 +91,7 @@ def download_kb_from_hf():
     try:
         logging.info("📥 Downloading KB from HuggingFace...")
         kb_path = hf_hub_download(
-            repo_id="Ardian122/skin-embeddings-v4",
+            repo_id="Ardian122/skin-embeddings-v5",
             filename="skin_kb.pkl",
             cache_dir="./hf_cache"
         )
@@ -125,28 +128,147 @@ def load_models():
         except Exception as e:
             logging.error(f"❌ Model loading failed: {str(e)}")
             return False
+        
+# Tambah di atas fungsi search_similar()
+def rerank_documents(query, docs, top_k=3):
+    """MRR Reranker - Pilih dokumen paling relevan"""
+    if not docs:
+        return []
+    
+    # Cross-encoder reranker (lebih akurat dari cosine similarity)
+    try:
+        reranker = SentenceTransformer('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        pairs = [[query, doc] for doc in docs]
+        scores = reranker.predict(pairs)
+        
+        # Rerank berdasarkan score
+        ranked = sorted(zip(docs, scores), key=lambda x: x[1], reverse=True)
+        return [doc for doc, score in ranked[:top_k]]
+    except:
+        # Fallback ke cosine similarity jika reranker gagal
+        return docs[:top_k]
 
-def search_similar(query, top_k=3, min_score=0.35):
-    if not embedder or not kb: return []
+def search_similar(query, top_k=5, min_score=0.45):  # top_k naik ke 5
+    if not embedder or not kb: 
+        return []
+    
     try:
         q_emb = embedder.encode(query, normalize_embeddings=True)
         sims = np.dot(kb["embeddings"], q_emb)
         idx = np.argsort(sims)[::-1]
         
-        results = []
+        # Ambil kandidat lebih banyak untuk reranking
+        candidates = []
         for i in idx:
-            if len(results) >= top_k: break
+            if len(candidates) >= top_k * 2:  # 10 kandidat untuk rerank
+                break
             score = float(sims[i])
-            if score < min_score: continue
+            if score < min_score:
+                continue
             
             doc_text = kb["documents"][i]['text']
             if any(spam in doc_text.lower() for spam in SPAM_KEYWORDS):
                 continue
-            results.append(doc_text)
-        return results
+            candidates.append(doc_text)
+        
+        # MRR: Rerank kandidat
+        reranked_docs = rerank_documents(query, candidates, top_k)
+        logging.info(f"MRR: {len(candidates)} → {len(reranked_docs)} dokumen")
+        
+        return reranked_docs
     except Exception as e:
-        logging.error(f"Search error: {str(e)}")
+        logging.error(f"MRR Search error: {str(e)}")
         return []
+
+# Tambah endpoint untuk debugging MRR
+@chatbot_bp.route("/debug", methods=["POST"])
+def debug_chat():
+    """Debug endpoint - Lihat retrieved documents"""
+    try:
+        data = request.get_json()
+        message = data.get("message", "").strip()
+        
+        if not load_models():
+            return jsonify({"error": "Models not loaded"}), 503
+        
+        docs = search_similar(message)
+        context = "\n".join([f"- {d[:100]}..." for d in docs])
+        
+        return jsonify({
+            "query": message,
+            "retrieved_docs": len(docs),
+            "docs_preview": docs,
+            "context": context
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+def search_similar(query, top_k=5, min_score=0.45):
+    if not embedder or not kb: 
+        logging.info(f"❌ MRR: Models/KB not loaded for query: '{query}'")
+        return []
+    
+    try:
+        logging.info(f"🔍 MRR Query: '{query}' - Starting embedding search...")
+        q_emb = embedder.encode(query, normalize_embeddings=True)
+        sims = np.dot(kb["embeddings"], q_emb)
+        idx = np.argsort(sims)[::-1]
+        
+        # Ambil kandidat untuk reranking
+        candidates = []
+        for i in idx:
+            if len(candidates) >= top_k * 2:  # 10 kandidat
+                break
+            score = float(sims[i])
+            if score < min_score:
+                continue
+            
+            doc_text = kb["documents"][i]['text']
+            if any(spam in doc_text.lower() for spam in SPAM_KEYWORDS):
+                continue
+            candidates.append(doc_text)
+        
+        logging.info(f"📊 MRR: {len(kb['documents'])} total docs → {len(candidates)} candidates (min_score={min_score})")
+        
+        # MRR Simple Reranking (ringan)
+        reranked_docs = simple_mrr(query, candidates, top_k)
+        
+        logging.info(f"✅ MRR: {len(candidates)} candidates → {len(reranked_docs)} final docs")
+        logging.info(f"📄 Top docs: {reranked_docs[0][:100]}..." if reranked_docs else "❌ No docs after MRR")
+        
+        return reranked_docs
+        
+    except Exception as e:
+        logging.error(f"💥 MRR Error: {str(e)}")
+        return []
+
+def simple_mrr(query, docs, top_k=3):
+    """MRR sederhana - Keyword + length relevance"""
+    if not docs:
+        return []
+    
+    query_words = set(query.lower().split())
+    scores = []
+    
+    for i, doc in enumerate(docs):
+        # Keyword overlap
+        doc_words = set(doc.lower().split())
+        keyword_score = len(query_words.intersection(doc_words)) / max(len(query_words), 1)
+        
+        # Length penalty
+        doc_len = len(doc.split())
+        length_score = max(0, 1.0 - abs(doc_len - 80) / 80)  # Ideal ~80 kata
+        
+        # MRR score
+        mrr_score = (keyword_score * 0.7) + (length_score * 0.3)
+        scores.append((doc, mrr_score))
+    
+    ranked = sorted(scores, key=lambda x: x[1], reverse=True)
+    logging.info(f"📈 MRR Scores: {[f'{s:.3f}' for _, s in ranked[:3]]}")
+    
+    return [doc for doc, _ in ranked[:top_k]]
+
 
 def clean_llm_output(text: str) -> str:
     replacements = {
@@ -205,54 +327,165 @@ def generate_response_with_llm(context: str, question: str) -> str:
 # --- MAIN ROUTE ---
 
 @chatbot_bp.route("/chat", methods=["POST"])
+@jwt_required()
 def chat():
+    conn = None
+    cursor = None
+
     try:
         data = request.get_json()
         message = data.get("message", "").strip()
-        
+        conversation_id = data.get("conversation_id")
+
+        if not conversation_id:
+            return jsonify({"success": False, "reply": "Conversation ID tidak valid"}), 400
+
         if not message or len(message) > 500:
             return jsonify({"success": False, "reply": "❗ Pesan terlalu panjang atau kosong."}), 400
-        
-        # 1. Cek Sapaan
-        if is_greeting(message):
-            return jsonify({
-                "success": True, 
-                "reply": "Halo! 😊 Aku Glowie, asisten AI kesehatan kulitmu. Ada yang bisa Glowie bantu seputar masalah kulit atau perawatan wajahmu?"
-            })
-            
-        # 2. Cek Ucapan Terima Kasih
-        if is_thanks(message):
-            return jsonify({
-                "success": True, 
-                "reply": "Sama-sama! Senang bisa membantu. Jaga kesehatan kulitmu selalu ya, Glowers! ✨"
-            })
 
-        # 3. Cek Relevansi Topik Kulit
-        if not is_skin_related(message):
-            return jsonify({
-                "success": True, 
-                "reply": "Maaf, saat ini Glowie hanya bisa menjawab pertanyaan seputar kesehatan kulit dan perawatan wajah. Ada keluhan kulit yang ingin kamu tanyakan ke Glowie? 😊"
-            })
-        
-        # 4. Load Models & Search
-        if not load_models():
-            return jsonify({"success": False, "reply": "⚠️ Glowie sedang maintenance sebentar, tunggu ya."}), 503
-        
-        docs = search_similar(message)
-        if not docs:
-            return jsonify({
-                "success": True, 
-                "reply": "Glowie belum menemukan info spesifik mengenai hal itu di database. Untuk keamanan, sebaiknya konsultasikan langsung ke dokter kulit ya 🏥"
-            })
-        
-        # 5. Generate Response
-        context_text = "\n".join([f"- {d}" for d in docs])
-        reply = generate_response_with_llm(context_text, message)
-        
-        return jsonify({"success": True, "reply": reply})
+        # ================= DB CONNECT =================
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"success": False, "reply": "DB error"}), 500
+        cursor = conn.cursor(dictionary=True)
+
+        # ================= 1. GREETING =================
+        if is_greeting(message):
+            reply = (
+                "Halo! 😊 Aku Glowie, asisten AI kesehatan kulitmu. "
+                "Ada yang bisa Glowie bantu seputar masalah kulit atau perawatan wajahmu?"
+            )
+
+        # ================= 2. THANKS =================
+        elif is_thanks(message):
+            reply = "Sama-sama! Senang bisa membantu. Jaga kesehatan kulitmu selalu ya, Glowers! ✨"
+
+        # ================= 3. NON SKIN =================
+        elif not is_skin_related(message):
+            reply = (
+                "Maaf, saat ini Glowie hanya bisa menjawab pertanyaan seputar "
+                "kesehatan kulit dan perawatan wajah. Ada keluhan kulit yang ingin kamu tanyakan? 😊"
+            )
+
+        else:
+            # ================= 4. LOAD MODEL =================
+            if not load_models():
+                return jsonify({"success": False, "reply": "⚠️ Glowie sedang maintenance sebentar."}), 503
+
+            docs = search_similar(message)
+            if not docs:
+                reply = (
+                    "Glowie belum menemukan info spesifik mengenai hal itu di database. "
+                    "Untuk keamanan, sebaiknya konsultasikan langsung ke dokter kulit ya 🏥"
+                )
+            else:
+                context_text = "\n".join([f"- {d}" for d in docs])
+                reply = generate_response_with_llm(context_text, message)
+
+        # ================= INSERT USER MESSAGE =================
+        cursor.execute(
+            """
+            INSERT INTO messages (conversation_id, role, content)
+            VALUES (%s, %s, %s)
+            """,
+            (conversation_id, "user", message)
+        )
+
+        # ================= INSERT BOT MESSAGE =================
+        cursor.execute(
+            """
+            INSERT INTO messages (conversation_id, role, content)
+            VALUES (%s, %s, %s)
+            """,
+            (conversation_id, "assistant", reply)
+        )
+
+        conn.commit()
+
+        return jsonify({"success": True, "reply": reply}), 200
 
     except Exception as e:
-        logging.error(f"Server Error: {str(e)}")
+        if conn:
+            conn.rollback()
+        logging.error(f"❌ Chat error: {str(e)}")
         return jsonify({"success": False, "reply": "⚠️ Terjadi kesalahan pada server Glowie."}), 500
 
-        
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@chatbot_bp.route('/conversations', methods=['GET'])
+@jwt_required()
+def get_conversations():
+    user_id = get_jwt_identity()
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify(status='error', message='DB error'), 500
+
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        "SELECT id, title, created_at FROM conversations WHERE user_id = %s ORDER BY created_at DESC",
+        (user_id,)
+    )
+    conversations = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(conversations), 200
+
+@chatbot_bp.route('/conversations', methods=['POST'])
+@jwt_required()
+def create_conversation():
+    user_id = get_jwt_identity()
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify(status='error', message='DB error'), 500
+
+    cursor = conn.cursor(dictionary=True)
+    
+    from datetime import datetime
+    title = f"Chat {datetime.now().strftime('%d %b %Y %H:%M')}"
+    
+    cursor.execute(
+        "INSERT INTO conversations (user_id, title) VALUES (%s, %s)",
+        (user_id, title)
+    )
+    conn.commit()
+
+    conversation_id = cursor.lastrowid
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({'conversation_id': conversation_id, 'title': title}), 201
+
+
+@chatbot_bp.route('/messages/<int:conversation_id>', methods=['GET'])
+@jwt_required()
+def get_messages(conversation_id):
+    user_id = get_jwt_identity()
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify(status='error', message='DB error'), 500
+
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT role, content, created_at
+        FROM messages
+        WHERE conversation_id = %s
+        ORDER BY created_at ASC
+    """, (conversation_id,))
+    
+    messages = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(messages), 200
