@@ -111,7 +111,7 @@ def get_history_detail(analysis_id):
                 skin_problem,
                 skin_problem_confidence,
                 skin_problem_predictions,
-                note
+                notes
             FROM face_analyses
             WHERE id = %s AND user_id = %s
         """, (analysis_id, user_id))
@@ -155,7 +155,7 @@ def get_history_detail(analysis_id):
                 'all_predictions': row.get('skin_problem_predictions') or {}
             },
             
-            'note': row.get('note')
+            'notes': row.get('notes')
         }
 
         try:
@@ -282,7 +282,7 @@ def update_notes(analysis_id):
         # Update note
         cursor.execute("""
             UPDATE face_analyses
-            SET note = %s
+            SET notes = %s
             WHERE id = %s AND user_id = %s
         """, (notes if notes else None, analysis_id, user_id))
         
@@ -298,7 +298,7 @@ def update_notes(analysis_id):
         return jsonify({
             'success': True,
             'message': 'Note updated successfully',
-            'note': notes if notes else None
+            'notes': notes if notes else None
         }), 200
     
     except Exception as e:

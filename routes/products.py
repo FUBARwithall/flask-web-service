@@ -20,6 +20,11 @@ def get_products():
         cursor.close()
         conn.close()
 
+        # Convert Decimal to float for JSON serialization
+        for p in products:
+            if p.get('harga'):
+                p['harga'] = float(p['harga'])
+
         return jsonify({'status': 'success', 'data': products}), 200
     except Exception as e:
         print(f"Error in get_products: {e}")
@@ -56,6 +61,11 @@ def get_products_by_category():
         cursor.close()
         conn.close()
 
+        # Convert Decimal to float for JSON serialization
+        for p in products:
+            if p.get('harga'):
+                p['harga'] = float(p['harga'])
+
         return jsonify({'status': 'success', 'data': products}), 200
     except Exception as e:
         print(f"Error in get_products_by_category: {e}")
@@ -80,6 +90,10 @@ def get_product(product_id):
 
         if not product:
             return jsonify({'status': 'error', 'message': 'Product tidak ditemukan'}), 404
+
+        # Convert Decimal to float for JSON serialization
+        if product.get('harga'):
+            product['harga'] = float(product['harga'])
 
         return jsonify({'status': 'success', 'data': product}), 200
     except Exception as e:
@@ -171,6 +185,11 @@ def get_favorite_products():
 
         cursor.close()
         conn.close()
+
+        # Convert Decimal to float for JSON serialization
+        for p in products:
+            if p.get('harga'):
+                p['harga'] = float(p['harga'])
 
         return jsonify({
             'success': True,

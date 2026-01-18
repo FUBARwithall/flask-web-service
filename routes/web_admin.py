@@ -108,6 +108,25 @@ def web_dashboard():
 
         cursor.execute("SELECT skin_condition, COUNT(*) as count FROM skin_data GROUP BY skin_condition")
         skin_stats = cursor.fetchall()
+
+        # Face analysis stats
+        cursor.execute("SELECT skin_type, COUNT(*) as count FROM face_analyses GROUP BY skin_type")
+        face_type_stats = cursor.fetchall()
+
+        cursor.execute("SELECT skin_problem, COUNT(*) as count FROM face_analyses GROUP BY skin_problem")
+        face_problem_stats = cursor.fetchall()
+
+        # Body analysis stats
+        cursor.execute("SELECT disease_name, COUNT(*) as count FROM body_analyses GROUP BY disease_name")
+        body_disease_stats = cursor.fetchall()
+
+        # Pending comments for classification
+        cursor.execute("SELECT COUNT(*) as count FROM product_comments WHERE sentiment IS NULL")
+        pending_comments = cursor.fetchone()['count']
+
+        # Sentiment stats for comments
+        cursor.execute("SELECT sentiment, COUNT(*) as count FROM product_comments WHERE sentiment IS NOT NULL GROUP BY sentiment")
+        sentiment_stats = cursor.fetchall()
         
         cursor.close()
         conn.close()
@@ -119,7 +138,12 @@ def web_dashboard():
                              total_articles=total_articles,
                              total_products=total_products,
                              recent_users=recent_users,
-                             skin_stats=skin_stats)
+                             skin_stats=skin_stats,
+                             face_type_stats=face_type_stats,
+                             face_problem_stats=face_problem_stats,
+                             body_disease_stats=body_disease_stats,
+                             pending_comments=pending_comments,
+                             sentiment_stats=sentiment_stats)
     except Exception as e:
         print(f"Error in web_dashboard: {e}")
         flash('Terjadi kesalahan server', 'danger')
