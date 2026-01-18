@@ -9,7 +9,7 @@ import json
 import threading
 from config import UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import uuid
 from models import get_db_connection
 
@@ -138,6 +138,11 @@ def predict_with_array(model, labels, img_array):
 
 def save_face_analysis_to_db(user_id, analysis_data):
     """Save face analysis results to database (runs in background thread)"""
+    print(f"📝 save_face_analysis_to_db called for user {user_id}")
+    print(f"📝 Analysis ID: {analysis_data.get('analysis_id')}")
+    print(f"📝 Timestamp DB: {analysis_data.get('timestamp_db')}")
+    print(f"📝 Timestamp DB type: {type(analysis_data.get('timestamp_db'))}")
+    
     conn = get_db_connection()
     if not conn:
         print("ERROR: Could not connect to database for saving analysis")
@@ -157,7 +162,7 @@ def save_face_analysis_to_db(user_id, analysis_data):
         values = (
             analysis_data['analysis_id'],
             user_id,
-            analysis_data['timestamp'],
+            analysis_data['timestamp_db'],  # Use datetime object for MySQL
             analysis_data['image_filename'],
             analysis_data['image_url'],
             analysis_data['skin_type_analysis']['result'],
@@ -168,6 +173,7 @@ def save_face_analysis_to_db(user_id, analysis_data):
             json.dumps(analysis_data['skin_problem_analysis']['all_predictions'])
         )
         
+        print(f"📝 Executing query with values: {values[0]}, {values[1]}, {values[2]}")
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -176,6 +182,9 @@ def save_face_analysis_to_db(user_id, analysis_data):
         return True
     except Exception as e:
         print(f"❌ Error saving analysis to database: {e}")
+        print(f"❌ Error type: {type(e)}")
+        import traceback
+        print(f"❌ Traceback: {traceback.format_exc()}")
         if conn:
             conn.close()
         return False
@@ -233,7 +242,10 @@ def detect_all():
 
     # Generate unique identifiers
     analysis_id = str(uuid.uuid4())
-    timestamp = datetime.utcnow().isoformat() + 'Z'
+    # WIB = UTC+7
+    wib = timezone(timedelta(hours=7))
+    timestamp_dt = datetime.now(wib)  # datetime object for database
+    timestamp_str = timestamp_dt.isoformat()  # ISO string for API response
     
     # Create analyses folder if it doesn't exist
     analyses_folder = os.path.join(UPLOAD_FOLDER, 'analyses')
@@ -259,13 +271,14 @@ def detect_all():
         problem_result = predict_with_array(m_problem, LABELS_PROBLEM, img_array)
         
         # Image URL for frontend (relative path)
-        image_url = f'/static/uploads/analyses/{saved_filename}'
+        image_url = f'/uploads/analyses/{saved_filename}'
         
         # Prepare response data
         analysis_data = {
             'success': True,
             'analysis_id': analysis_id,
-            'timestamp': timestamp,
+            'timestamp': timestamp_str,  # ISO string for frontend
+            'timestamp_db': timestamp_dt,  # datetime object for database
             'image_url': image_url,
             'image_filename': saved_filename,
             'skin_type_analysis': type_result,
@@ -273,6 +286,9 @@ def detect_all():
         }
         
         # Save to database in background thread (non-blocking)
+        print(f"🔄 Starting background thread to save analysis {analysis_id} for user {user_id}")
+        print(f"📅 Timestamp for DB: {timestamp_dt}")
+        print(f"📅 Timestamp for API: {timestamp_str}")
         threading.Thread(
             target=save_face_analysis_to_db, 
             args=(user_id, analysis_data),
@@ -329,7 +345,7 @@ def get_user_history():
                 {
                     'analysis_id': row['id'],
                     'timestamp': row['timestamp'],
-                    'image_url': row['image_url'].replace('/uploads/', '/static/uploads/'),
+                    'image_url': row['image_url'],
                     'skin_type': row['skin_type'],
                     'skin_problem': row['skin_problem']
                 }
@@ -369,7 +385,7 @@ def save_body_analysis_to_db(user_id, analysis_data):
         values = (
             analysis_data['analysis_id'],
             user_id,
-            analysis_data['timestamp'],
+            analysis_data['timestamp_db'],  # Use datetime object for MySQL
             analysis_data['image_filename'],
             analysis_data['image_url'],
             analysis_data['disease_analysis']['disease_key'],
@@ -419,7 +435,10 @@ def detect_body_disease():
 
     # Generate unique identifiers
     analysis_id = str(uuid.uuid4())
-    timestamp = datetime.utcnow().isoformat() + 'Z'
+    # WIB = UTC+7
+    wib = timezone(timedelta(hours=7))
+    timestamp_dt = datetime.now(wib)  # datetime object for database
+    timestamp_str = timestamp_dt.isoformat()  # ISO string for API response
     
     # Create body_analyses folder if it doesn't exist
     body_folder = os.path.join(UPLOAD_FOLDER, 'body_analyses')
@@ -461,13 +480,14 @@ def detect_body_disease():
         }
         
         # Image URL for frontend (relative path)
-        image_url = f'/static/uploads/body_analyses/{saved_filename}'
+        image_url = f'/uploads/body_analyses/{saved_filename}'
         
         # Prepare response data
         analysis_data = {
             'success': True,
             'analysis_id': analysis_id,
-            'timestamp': timestamp,
+            'timestamp': timestamp_str,  # ISO string for frontend
+            'timestamp_db': timestamp_dt,  # datetime object for database
             'image_url': image_url,
             'image_filename': saved_filename,
             'disease_analysis': {
@@ -511,6 +531,7 @@ def detect_body_disease():
         }), 500
 
 
+
 @detection_bp.route('/body-history', methods=['GET'])
 @jwt_required()
 def get_body_history():
@@ -532,6 +553,19 @@ def get_body_history():
         """, (user_id,))
         
         results = cursor.fetchall()
+        
+        # Convert timestamps to WIB (UTC+7)
+        wib = timezone(timedelta(hours=7))
+        for item in results:
+            if item.get('timestamp') and isinstance(item['timestamp'], datetime):
+                # Jika timestamp dari DB tidak punya timezone, assume UTC dan convert ke WIB
+                if item['timestamp'].tzinfo is None:
+                    item['timestamp'] = item['timestamp'].replace(tzinfo=timezone.utc).astimezone(wib).isoformat()
+                else:
+                    item['timestamp'] = item['timestamp'].astimezone(wib).isoformat()
+            elif item.get('timestamp'):
+                item['timestamp'] = str(item['timestamp'])
+        
         cursor.close()
         conn.close()
         
@@ -541,7 +575,7 @@ def get_body_history():
                 {
                     'analysis_id': row['id'],
                     'timestamp': row['timestamp'],
-                    'image_url': row['image_url'].replace('/uploads/', '/static/uploads/'),
+                    'image_url': row['image_url'],
                     'disease_key': row['disease_key'],
                     'disease_name': row['disease_name'],
                     'confidence': row['confidence']
@@ -555,4 +589,219 @@ def get_body_history():
         return jsonify({
             'success': False,
             'message': f'Error retrieving body history: {str(e)}'
+        }), 500
+
+
+@detection_bp.route('/body-history/<string:analysis_id>', methods=['GET'])
+@jwt_required()
+def get_body_history_detail(analysis_id):
+    """Get body disease detection detail for a specific analysis"""
+    user_id = get_jwt_identity()
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT 
+                id,
+                timestamp,
+                image_filename,
+                image_url,
+                disease_key,
+                disease_name,
+                confidence,
+                all_predictions,
+                note
+            FROM body_analyses
+            WHERE id = %s AND user_id = %s
+        """, (analysis_id, user_id))
+        
+        row = cursor.fetchone()
+        cursor.close()
+        
+        if not row:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Data not found'}), 404
+        
+        # Load metadata to get disease info
+        metadata = load_body_metadata()
+        disease_key = row['disease_key']
+        disease_info = metadata.get(disease_key, {
+            'nama': disease_key.capitalize(),
+            'deskripsi': 'Informasi tidak tersedia',
+            'gejala': [],
+            'obat': []
+        })
+        
+        # Convert timestamp to WIB (UTC+7)
+        wib = timezone(timedelta(hours=7))
+        timestamp_value = row['timestamp']
+        
+        if timestamp_value and isinstance(timestamp_value, datetime):
+            # Jika timestamp dari DB tidak punya timezone, assume UTC dan convert ke WIB
+            if timestamp_value.tzinfo is None:
+                timestamp_str = timestamp_value.replace(tzinfo=timezone.utc).astimezone(wib).isoformat()
+            else:
+                timestamp_str = timestamp_value.astimezone(wib).isoformat()
+        elif timestamp_value:
+            timestamp_str = str(timestamp_value)
+        else:
+            timestamp_str = None
+        
+        # Format response
+        data = {
+            'timestamp': timestamp_str,
+            'image_url': row['image_url'] if row.get('image_url') else None,
+            'disease_analysis': {
+                'disease_key': disease_key,
+                'disease_name': row['disease_name'],
+                'confidence': row['confidence'],
+                'all_predictions': row.get('all_predictions') or {},
+                'disease_info': {
+                    'nama': disease_info.get('nama', disease_key.capitalize()),
+                    'deskripsi': disease_info.get('deskripsi', ''),
+                    'gejala': disease_info.get('gejala', []),
+                    'obat': disease_info.get('obat', [])
+                }
+            },
+            'note': row.get('note')
+        }
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'data': data
+        }), 200
+        
+    except Exception as e:
+        if conn:
+            conn.close()
+        print(f"[ERROR] get_body_history_detail: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error retrieving body history detail: {str(e)}'
+        }), 500
+
+
+@detection_bp.route('/body-history/<string:analysis_id>/notes', methods=['PATCH'])
+@jwt_required()
+def update_body_notes(analysis_id):
+    """Update or delete notes for a body analysis"""
+    user_id = get_jwt_identity()
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+    
+    try:
+        # Get notes from request body
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'Request body required'}), 400
+        
+        notes = data.get('notes', '')  # Empty string = delete notes
+        
+        cursor = conn.cursor()
+        
+        # Check if analysis exists and belongs to user
+        cursor.execute("""
+            SELECT id FROM body_analyses
+            WHERE id = %s AND user_id = %s
+        """, (analysis_id, user_id))
+        
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({'success': False, 'message': 'Data not found'}), 404
+        
+        # Update note
+        cursor.execute("""
+            UPDATE body_analyses
+            SET note = %s
+            WHERE id = %s AND user_id = %s
+        """, (notes if notes else None, analysis_id, user_id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Note updated successfully',
+            'note': notes if notes else None
+        }), 200
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+            conn.close()
+        print(f"[ERROR] update_body_notes: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error updating notes: {str(e)}'
+        }), 500
+
+
+@detection_bp.route('/body-history/<string:analysis_id>', methods=['DELETE'])
+@jwt_required()
+def delete_body_history(analysis_id):
+    """Delete body disease detection history"""
+    user_id = get_jwt_identity()
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get image filename first
+        cursor.execute("""
+            SELECT image_filename
+            FROM body_analyses
+            WHERE id = %s AND user_id = %s
+        """, (analysis_id, user_id))
+        row = cursor.fetchone()
+        
+        if not row:
+            cursor.close()
+            conn.close()
+            return jsonify({'success': False, 'message': 'Data not found'}), 404
+        
+        # Delete from database
+        cursor.execute("""
+            DELETE FROM body_analyses
+            WHERE id = %s AND user_id = %s
+        """, (analysis_id, user_id))
+        
+        conn.commit()
+        cursor.close()
+        
+        # Delete image file (optional, with error handling)
+        if row.get('image_filename'):
+            try:
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                image_path = os.path.join(BASE_DIR, 'static/uploads/body_analyses', row['image_filename'])
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+                    print(f"[INFO] Deleted body image: {image_path}")
+            except Exception as e:
+                print(f"[WARNING] Failed to delete body image: {e}")
+        
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Body history deleted'}), 200
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+            conn.close()
+        print(f"[ERROR] delete_body_history: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error deleting body history: {str(e)}'
         }), 500

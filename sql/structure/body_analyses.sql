@@ -8,5 +8,6 @@ CREATE TABLE body_analyses (
     disease_name VARCHAR(100),
     confidence FLOAT,
     all_predictions JSON,
+    notes TEXT, //terbaru
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
