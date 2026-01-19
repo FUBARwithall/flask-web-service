@@ -7,16 +7,16 @@
     .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
     .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
     .page-header i { color: #3b82f6; }
-    .header-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .header-card { background: white; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
     .header-info h3 { font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0 0 4px 0; }
     .header-info p { font-size: 0.9rem; color: #64748b; margin: 0; }
-    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn { padding: 10px 18px; border-radius: 0; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
     .btn-primary { background: #3b82f6; color: white; }
     .btn-primary:hover { background: #2563eb; }
     .btn-danger { background: #ef4444; color: white; }
     .btn-danger:hover { background: #dc2626; }
     .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
-    .table-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    .table-card { background: white; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
     .table { width: 100%; border-collapse: collapse; }
     .table thead { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
     .table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
@@ -52,10 +52,26 @@
     .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
     .table tbody tr:hover { background: #f8fafc; }
     .table tbody tr.clickable-row { cursor: pointer; }
-    .image-thumbnail { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+    .image-thumbnail { width: 50px; height: 50px; object-fit: cover; border-radius: 0; }
     .empty-state { padding: 60px 20px; text-align: center; }
     .empty-state i { font-size: 3rem; color: #cbd5e1; }
     .empty-state p { color: #94a3b8; margin-top: 12px; }
+
+    /* Modal Styles */
+    .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .modal-content { background-color: white; padding: 24px; border-radius: 0; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
+    .modal-header h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: #1e293b; }
+    .modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b; }
+    .modal-body { margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #475569; font-size: 0.9rem; }
+    .file-input-wrapper { border: 2px dashed #e2e8f0; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .file-input-wrapper:hover { border-color: #3b82f6; background: #f8fafc; }
+    .file-input-wrapper i { font-size: 2rem; color: #94a3b8; margin-bottom: 8px; }
+    .template-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #3b82f6; text-decoration: none; margin-top: 8px; }
+    .template-link:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
@@ -69,9 +85,46 @@
         <h3>Daftar Produk</h3>
         <p>Kelola konten produk yang tampil di aplikasi</p>
     </div>
-    <a href="{{ url_for('web_admin.web_create_product') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Buat Produk Baru
-    </a>
+    <div style="display: flex; gap: 12px;">
+        <button type="button" class="btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;" id="openImportModal">
+            <i class="fas fa-file-import"></i> Import Bulk
+        </button>
+        <a href="{{ url_for('web_admin.web_create_product') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Buat Produk Baru
+        </a>
+    </div>
+</div>
+
+<!-- Modal Import -->
+<div class="modal" id="importModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-import"></i> Bulk Import Produk</h3>
+            <button class="modal-close" id="closeImportModal">&times;</button>
+        </div>
+        <form action="{{ url_for('web_admin.web_import_products') }}" method="POST" enctype="multipart/form-data">
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">
+                    Unggah file CSV atau Excel (.xlsx) untuk menambahkan banyak produk sekaligus.
+                </p>
+                <div class="form-group">
+                    <label>Pilih File</label>
+                    <div class="file-input-wrapper" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div id="fileInfo">Klik untuk pilih file</div>
+                        <input type="file" name="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display: none;" onchange="updateFileInfo(this)">
+                    </div>
+                </div>
+                <a href="{{ url_for('web_admin.web_download_product_template') }}" class="template-link">
+                    <i class="fas fa-download"></i> Download Template CSV
+                </a>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" class="btn" style="background: #f1f5f9; color: #475569;" id="cancelImport">Batal</button>
+                <button type="submit" class="btn btn-primary">Mulai Import</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="table-card">
@@ -115,7 +168,7 @@
                 <td><strong>{{ p.merek }}</strong></td>
                 <td>{{ p.nama }}</td>
                 <td>Rp {{ "{:,.0f}".format(p.harga|default(0, true)) }}</td>
-                <td><span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">{{ p.kategori_penyakit or '-' }}</span></td>
+                <td><span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 0; font-size: 0.85rem;">{{ p.kategori_penyakit or '-' }}</span></td>
                 <td>
                     <form action="{{ url_for('web_admin.web_delete_product', product_id=p.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus produk ini?');">
                         <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
@@ -298,6 +351,43 @@ document.addEventListener("DOMContentLoaded", () => {
     if (idHeader) {
         idHeader.classList.add('sort-desc');
     }
+
+    // Modal Handling
+    const importModal = document.getElementById('importModal');
+    const openImportBtn = document.getElementById('openImportModal');
+    const closeImportBtn = document.getElementById('closeImportModal');
+    const cancelImportBtn = document.getElementById('cancelImport');
+
+    if (openImportBtn) {
+        openImportBtn.addEventListener('click', () => {
+            importModal.classList.add('show');
+        });
+    }
+
+    const closeModal = () => {
+        importModal.classList.remove('show');
+    };
+
+    if (closeImportBtn) closeImportBtn.addEventListener('click', closeModal);
+    if (cancelImportBtn) cancelImportBtn.addEventListener('click', closeModal);
+    
+    // Close on click outside
+    window.addEventListener('click', (e) => {
+        if (e.target === importModal) closeModal();
+    });
 });
+
+function updateFileInfo(input) {
+    const fileInfo = document.getElementById('fileInfo');
+    if (input.files && input.files[0]) {
+        fileInfo.textContent = input.files[0].name;
+        fileInfo.style.color = '#3b82f6';
+        fileInfo.style.fontWeight = '600';
+    } else {
+        fileInfo.textContent = 'Klik untuk pilih file';
+        fileInfo.style.color = '#94a3b8';
+        fileInfo.style.fontWeight = '400';
+    }
+}
 </script>
 {% endblock %}

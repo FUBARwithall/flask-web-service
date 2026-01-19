@@ -7,16 +7,16 @@
     .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
     .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
     .page-header i { color: #3b82f6; }
-    .header-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .header-card { background: white; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
     .header-info h3 { font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0 0 4px 0; }
     .header-info p { font-size: 0.9rem; color: #64748b; margin: 0; }
-    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn { padding: 10px 18px; border-radius: 0; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
     .btn-primary { background: #3b82f6; color: white; }
     .btn-primary:hover { background: #2563eb; }
     .btn-danger { background: #ef4444; color: white; }
     .btn-danger:hover { background: #dc2626; }
     .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
-    .table-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    .table-card { background: white; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
     .table { width: 100%; border-collapse: collapse; }
     .table thead { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
     .table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
@@ -52,10 +52,26 @@
     .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
     .table tbody tr:hover { background: #f8fafc; }
     .table tbody tr.clickable-row { cursor: pointer; }
-    .image-thumbnail { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+    .image-thumbnail { width: 50px; height: 50px; object-fit: cover; border-radius: 0; }
     .empty-state { padding: 60px 20px; text-align: center; }
     .empty-state i { font-size: 3rem; color: #cbd5e1; }
     .empty-state p { color: #94a3b8; margin-top: 12px; }
+
+    /* Modal Styles */
+    .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .modal-content { background-color: white; padding: 24px; border-radius: 0; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
+    .modal-header h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: #1e293b; }
+    .modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b; }
+    .modal-body { margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #475569; font-size: 0.9rem; }
+    .file-input-wrapper { border: 2px dashed #e2e8f0; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .file-input-wrapper:hover { border-color: #3b82f6; background: #f8fafc; }
+    .file-input-wrapper i { font-size: 2rem; color: #94a3b8; margin-bottom: 8px; }
+    .template-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #3b82f6; text-decoration: none; margin-top: 8px; }
+    .template-link:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
@@ -70,9 +86,14 @@
         <h3>Daftar Makanan</h3>
         <p>Kelola konten makanan yang tampil di aplikasi</p>
     </div>
-    <a href="{{ url_for('web_admin.web_create_food') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Buat Makanan
-    </a>
+    <div style="display: flex; gap: 12px;">
+        <button type="button" class="btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;" onclick="openImportModal('foods')">
+            <i class="fas fa-file-import"></i> Import Bulk
+        </button>
+        <a href="{{ url_for('web_admin.web_create_food') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Buat Makanan
+        </a>
+    </div>
 </div>
 
 <div class="table-card">
@@ -136,9 +157,14 @@
         <h3>Daftar Minuman</h3>
         <p>Kelola konten minuman yang tampil di aplikasi</p>
     </div>
-    <a href="{{ url_for('web_admin.web_create_drink') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Buat Minuman
-    </a>
+    <div style="display: flex; gap: 12px;">
+        <button type="button" class="btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;" onclick="openImportModal('drinks')">
+            <i class="fas fa-file-import"></i> Import Bulk
+        </button>
+        <a href="{{ url_for('web_admin.web_create_drink') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Buat Minuman
+        </a>
+    </div>
 </div>
 
 <div class="table-card">
@@ -355,6 +381,155 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = row.dataset.url;
         });
     });
+
+    // ==================== SORTING LOGIC ====================
+    let tableSorts = {
+        'foodsTable': { column: 'id', direction: 'desc' },
+        'drinksTable': { column: 'id', direction: 'desc' }
+    };
+
+    function sortTable(tableId, column, direction) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.sort((a, b) => {
+            let aVal, bVal;
+            const header = table.querySelector(`th[data-column="${column}"]`);
+            const columnIndex = Array.from(header.parentElement.children).indexOf(header);
+
+            aVal = a.cells[columnIndex].textContent.trim();
+            bVal = b.cells[columnIndex].textContent.trim();
+
+            // Numeric sorting for ID and nutrition values
+            const isNumeric = ['id', 'oil', 'simple_carb', 'sugar', 'fiber', 'fermented'].includes(column);
+            if (isNumeric) {
+                const aNum = parseFloat(aVal.replace('#', '')) || 0;
+                const bNum = parseFloat(bVal.replace('#', '')) || 0;
+                return direction === 'asc' ? aNum - bNum : bNum - aNum;
+            }
+
+            // String sorting
+            return direction === 'asc' 
+                ? aVal.localeCompare(bVal) 
+                : bVal.localeCompare(aVal);
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', () => {
+            const table = header.closest('table');
+            const tableId = table.id;
+            const column = header.dataset.column;
+            const state = tableSorts[tableId];
+
+            // Update direction
+            if (state.column === column) {
+                state.direction = state.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.column = column;
+                state.direction = 'asc';
+            }
+
+            // UI feedback
+            table.querySelectorAll('.sortable').forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+            header.classList.add(`sort-${state.direction}`);
+
+            sortTable(tableId, column, state.direction);
+        });
+    });
+
+    // Initial Sort
+    sortTable('foodsTable', 'id', 'desc');
+    sortTable('drinksTable', 'id', 'desc');
+    document.querySelectorAll('th[data-column="id"]').forEach(h => h.classList.add('sort-desc'));
+
+    // ==================== MODAL UI LOGIC ====================
+    window.openImportModal = function(target) {
+        const modal = document.getElementById('importModal');
+        const label = document.getElementById('importTargetLabel');
+        const input = document.getElementById('importTargetInput');
+        const link = document.getElementById('templateDownloadLink');
+        const fInput = document.getElementById('fileInput');
+        const fInfo = document.getElementById('fileInfo');
+
+        if (!modal) return;
+
+        const isDrinks = target === 'drinks';
+        label.textContent = isDrinks ? 'Minuman' : 'Makanan';
+        input.value = target;
+        link.href = `{{ url_for('web_admin.web_download_food_template') }}?target=${target}`;
+        
+        // Reset file input
+        fInput.value = '';
+        fInfo.textContent = 'Klik untuk pilih file';
+        fInfo.style.color = '#94a3b8';
+        fInfo.style.fontWeight = '400';
+        
+        modal.classList.add('show');
+    };
+
+    window.closeImportModal = function() {
+        const modal = document.getElementById('importModal');
+        if (modal) modal.classList.remove('show');
+    };
+
+    window.updateFileInfo = function(input) {
+        const fInfo = document.getElementById('fileInfo');
+        if (input.files && input.files[0]) {
+            fInfo.textContent = input.files[0].name;
+            fInfo.style.color = '#3b82f6';
+            fInfo.style.fontWeight = '600';
+        } else {
+            fInfo.textContent = 'Klik untuk pilih file';
+            fInfo.style.color = '#94a3b8';
+            fInfo.style.fontWeight = '400';
+        }
+    };
+
+    // Close modal on click outside
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('importModal');
+        if (e.target === modal) closeImportModal();
+    });
 });
 </script>
+
+<!-- Modal Import -->
+<div class="modal" id="importModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-import"></i> Bulk Import <span id="importTargetLabel">Item</span></h3>
+            <button class="modal-close" onclick="closeImportModal()">&times;</button>
+        </div>
+        <form action="{{ url_for('web_admin.web_import_foods_drinks') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="target" id="importTargetInput" value="foods">
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">
+                    Unggah file CSV atau Excel (.xlsx) untuk menambahkan data secara massal.
+                </p>
+                <div class="form-group">
+                    <label>Pilih File</label>
+                    <div class="file-input-wrapper" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div id="fileInfo">Klik untuk pilih file</div>
+                        <input type="file" name="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display: none;" onchange="updateFileInfo(this)">
+                    </div>
+                </div>
+                <a id="templateDownloadLink" href="#" class="template-link">
+                    <i class="fas fa-download"></i> Download Template CSV
+                </a>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" class="btn" style="background: #f1f5f9; color: #475569;" onclick="closeImportModal()">Batal</button>
+                <button type="submit" class="btn btn-primary">Mulai Import</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

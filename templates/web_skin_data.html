@@ -7,10 +7,10 @@
     .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
     .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
     .page-header i { color: #3b82f6; }
-    .table-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    .table-card { background: white; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
     .table-header { padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .table-header-title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #1e293b; }
-    .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background: #dbeafe; color: #1e40af; }
+    .badge { padding: 4px 12px; border-radius: 0; font-size: 0.8rem; font-weight: 600; background: #dbeafe; color: #1e40af; }
     .table { width: 100%; border-collapse: collapse; }
     .table thead { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
     .table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
@@ -46,11 +46,11 @@
     .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
     .table tbody tr:hover { background: #f8fafc; }
     .table tbody tr.clickable-row { cursor: pointer; }
-    .badge-severity { padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+    .badge-severity { padding: 4px 12px; border-radius: 0; font-size: 0.8rem; font-weight: 600; }
     .badge-mild { background: #dcfce7; color: #166534; }
     .badge-moderate { background: #fef3c7; color: #92400e; }
     .badge-severe { background: #fee2e2; color: #991b1b; }
-    .btn { padding: 8px 14px; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 0.85rem; }
+    .btn { padding: 8px 14px; border-radius: 0; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 0.85rem; }
     .btn-danger { background: #ef4444; color: white; }
     .btn-danger:hover { background: #dc2626; }
     .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
@@ -59,9 +59,11 @@
     .empty-state { padding: 60px 20px; text-align: center; }
     .empty-state i { font-size: 3rem; color: #cbd5e1; }
     .empty-state p { color: #94a3b8; margin-top: 12px; }
-    .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin-top: 24px; color: #1e40af; }
+    .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 0; margin-top: 24px; color: #1e40af; }
     .info-box i { margin-right: 8px; }
     .info-box strong { font-weight: 600; }
+    .badge-face { background: #e0f2fe !important; color: #0369a1 !important; }
+    .badge-body { background: #fef3c7 !important; color: #92400e !important; }
 </style>
 {% endblock %}
 
@@ -93,8 +95,8 @@
                     <th class="sortable" data-column="id">ID</th>
                     <th class="sortable" data-column="name">User</th>
                     <th class="sortable" data-column="created_at">Tanggal</th>
-                    <th class="sortable" data-column="skin_condition">Kondisi Kulit</th>
-                    <th class="sortable" data-column="severity">Severity</th>
+                    <th class="sortable" data-column="type">Tipe</th>
+                    <th class="sortable" data-column="skin_condition">Hasil Analisis</th>
                     <th>Catatan</th>
                     <th>Aksi</th>
                 </tr>
@@ -103,19 +105,20 @@
                 {% for record in skin_data %}
                 <tr data-url="{{ url_for('web_admin.web_user_detail', user_id=record.user_id) }}" class="clickable-row">
                     <td>
-                        <input type="checkbox" class="row-checkbox checkbox-input" value="{{ record.id }}">
+                        <input type="checkbox" class="row-checkbox checkbox-input" value="{{ record.type }}:{{ record.id }}">
                     </td>
-                    <td>#{{ record.id }}</td>
+                    <td style="font-size: 0.75rem; color: #64748b;" title="{{ record.id }}">#{{ (record.id|string)[:8] }}...</td>
                     <td><strong>{{ record.name }}</strong></td>
                     <td style="font-size: 0.85rem; color: #64748b;">{{ record.created_at }}</td>
-                    <td>{{ record.skin_condition }}</td>
                     <td>
-                        {% set severity_class = 'mild' if record.severity == 'mild' else 'moderate' if record.severity == 'moderate' else 'severe' %}
-                        <span class="badge-severity badge-{{ severity_class }}">{{ record.severity }}</span>
+                        <span class="badge badge-{{ record.type }}">
+                            {{ 'Wajah' if record.type == 'face' else 'Tubuh' }}
+                        </span>
                     </td>
+                    <td>{{ record.skin_condition }}</td>
                     <td style="font-size: 0.9rem; color: #64748b;">{{ record.notes if record.notes else '-' }}</td>
                     <td>
-                        <form method="POST" action="{{ url_for('web_admin.web_delete_skin_record', record_id=record.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
+                        <form method="POST" action="{{ url_for('web_admin.web_delete_skin_record', record_id=record.id, type=record.type) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus record ini?');">
                             <button type="submit" class="btn btn-danger" title="Hapus Record">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -156,19 +159,16 @@ document.addEventListener("DOMContentLoaded", () => {
             let aVal, bVal;
 
             if (column === 'id') {
-                aVal = parseInt(a.querySelector('td:nth-child(2)').textContent.replace('#', ''));
-                bVal = parseInt(b.querySelector('td:nth-child(2)').textContent.replace('#', ''));
+                aVal = a.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                bVal = b.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
             } else if (column === 'created_at') {
                 aVal = new Date(a.cells[3].textContent.trim());
                 bVal = new Date(b.cells[3].textContent.trim());
-            } else if (column === 'severity') {
-                const severityOrder = { 'mild': 1, 'moderate': 2, 'severe': 3 };
-                const aText = a.cells[5].textContent.trim().toLowerCase();
-                const bText = b.cells[5].textContent.trim().toLowerCase();
-                aVal = severityOrder[aText] || 0;
-                bVal = severityOrder[bText] || 0;
+            } else if (column === 'type') {
+                aVal = a.cells[4].textContent.trim();
+                bVal = b.cells[4].textContent.trim();
             } else {
-                const columnIndex = ['id', 'name', 'created_at', 'skin_condition', 'severity'].indexOf(column) + 1;
+                const columnIndex = ['id', 'name', 'created_at', 'type', 'skin_condition'].indexOf(column) + 1;
                 aVal = a.cells[columnIndex]?.textContent?.trim() || '';
                 bVal = b.cells[columnIndex]?.textContent?.trim() || '';
             }

@@ -6,6 +6,9 @@ from datetime import datetime
 import os
 from models import get_db_connection, allowed_file
 from config import UPLOAD_FOLDER
+import pandas as pd
+import io
+from flask import send_file
 
 web_admin_bp = Blueprint('web_admin', __name__)
 
@@ -89,25 +92,27 @@ def web_dashboard():
         cursor = conn.cursor(dictionary=True)
         
         cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 0")
-        total_users = cursor.fetchone()['count']
+        row = cursor.fetchone()
+        total_users = row['count'] if row else 0
         
         cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 1")
-        total_admin = cursor.fetchone()['count']
+        row = cursor.fetchone()
+        total_admin = row['count'] if row else 0
         
-        cursor.execute("SELECT COUNT(*) as count FROM skin_data")
-        total_records = cursor.fetchone()['count']
+        cursor.execute("SELECT (SELECT COUNT(*) FROM face_analyses) + (SELECT COUNT(*) FROM body_analyses) as count")
+        row = cursor.fetchone()
+        total_records = row['count'] if row else 0
         
         cursor.execute("SELECT COUNT(*) as count FROM articles")
-        total_articles = cursor.fetchone()['count']
+        row = cursor.fetchone()
+        total_articles = row['count'] if row else 0
         
         cursor.execute("SELECT COUNT(*) as count FROM products")
-        total_products = cursor.fetchone()['count']
+        row = cursor.fetchone()
+        total_products = row['count'] if row else 0
         
         cursor.execute("SELECT id, name, email, created_at FROM users WHERE is_admin = 0 ORDER BY created_at DESC LIMIT 5")
         recent_users = cursor.fetchall()
-
-        cursor.execute("SELECT skin_condition, COUNT(*) as count FROM skin_data GROUP BY skin_condition")
-        skin_stats = cursor.fetchall()
 
         # Face analysis stats
         cursor.execute("SELECT skin_type, COUNT(*) as count FROM face_analyses GROUP BY skin_type")
@@ -138,7 +143,6 @@ def web_dashboard():
                              total_articles=total_articles,
                              total_products=total_products,
                              recent_users=recent_users,
-                             skin_stats=skin_stats,
                              face_type_stats=face_type_stats,
                              face_problem_stats=face_problem_stats,
                              body_disease_stats=body_disease_stats,
@@ -194,11 +198,15 @@ def web_user_detail(user_id):
             return redirect(url_for('web_admin.web_users'))
         
         cursor.execute("""
-            SELECT id, skin_condition, severity, notes, created_at 
-            FROM skin_data 
+            SELECT 'face' as type, id, skin_problem as skin_condition, NULL as severity, notes, created_at 
+            FROM face_analyses 
             WHERE user_id = %s 
+            UNION ALL
+            SELECT 'body' as type, id, disease_name as skin_condition, NULL as severity, notes, timestamp as created_at
+            FROM body_analyses
+            WHERE user_id = %s
             ORDER BY created_at DESC
-        """, (user_id,))
+        """, (user_id, user_id))
         skin_records = cursor.fetchall()
         
         cursor.execute("""
@@ -230,7 +238,8 @@ def web_delete_user(user_id):
         
         cursor = conn.cursor()
         
-        cursor.execute("DELETE FROM skin_data WHERE user_id = %s", (user_id,))
+        cursor.execute("DELETE FROM face_analyses WHERE user_id = %s", (user_id,))
+        cursor.execute("DELETE FROM body_analyses WHERE user_id = %s", (user_id,))
         
         cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         conn.commit()
@@ -263,9 +272,10 @@ def web_bulk_delete_users():
 
         cursor = conn.cursor()
 
-        # Delete related skin_data first
+        # Delete related analyses first (though face_analyses has CASCADE, body_analyses might not)
         placeholders = ','.join(['%s'] * len(user_ids))
-        cursor.execute(f"DELETE FROM skin_data WHERE user_id IN ({placeholders})", user_ids)
+        cursor.execute(f"DELETE FROM face_analyses WHERE user_id IN ({placeholders})", user_ids)
+        cursor.execute(f"DELETE FROM body_analyses WHERE user_id IN ({placeholders})", user_ids)
 
         # Then delete users
         cursor.execute(f"DELETE FROM users WHERE id IN ({placeholders})", user_ids)
@@ -687,6 +697,99 @@ def web_bulk_delete_products():
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_products'))
 
+@web_admin_bp.route('/products/import/template')
+@login_required
+def web_download_product_template():
+    """Download template CSV untuk import produk"""
+    cols = ['merek', 'nama', 'harga', 'kategori_penyakit', 'deskripsi', 'dosis', 'efek_samping', 'komposisi', 'manufaktur', 'nomor_registrasi']
+    df = pd.DataFrame(columns=cols)
+    
+    # Add example row
+    example = {
+        'merek': 'Brand ABC',
+        'nama': 'Serum Vitamin C',
+        'harga': 150000,
+        'kategori_penyakit': 'Acne',
+        'deskripsi': 'Deskripsi produk...',
+        'dosis': '2x sehari',
+        'efek_samping': 'Kemerahan ringan',
+        'komposisi': 'Aqua, Vit C, Glycerin',
+        'manufaktur': 'PT. Farmasi',
+        'nomor_registrasi': 'NA123456789'
+    }
+    df.loc[0] = example
+    
+    output = io.BytesIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+    
+    return send_file(output, mimetype='text/csv', as_attachment=True, download_name='template_produk.csv')
+
+@web_admin_bp.route('/products/import', methods=['POST'])
+@login_required
+def web_import_products():
+    """Import produk dari file CSV atau Excel"""
+    if 'file' not in request.files:
+        flash('Tidak ada file yang diunggah', 'danger')
+        return redirect(url_for('web_admin.web_products'))
+        
+    file = request.files['file']
+    if file.filename == '':
+        flash('Nama file kosong', 'danger')
+        return redirect(url_for('web_admin.web_products'))
+        
+    try:
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        elif file.filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(file)
+        else:
+            flash('Format file tidak didukung. Gunakan CSV atau Excel', 'danger')
+            return redirect(url_for('web_admin.web_products'))
+            
+        required_cols = ['merek', 'nama', 'harga', 'kategori_penyakit']
+        for col in required_cols:
+            if col not in df.columns:
+                flash(f'Kolom wajib "{col}" tidak ditemukan dalam file', 'danger')
+                return redirect(url_for('web_admin.web_products'))
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        count = 0
+        for _, row in df.iterrows():
+            if pd.isna(row['merek']) or pd.isna(row['nama']):
+                continue
+                
+            cursor.execute("""
+                INSERT INTO products 
+                (merek, nama, harga, kategori_penyakit, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                str(row['merek']),
+                str(row['nama']),
+                row['harga'] if not pd.isna(row['harga']) else 0,
+                str(row['kategori_penyakit']) if not pd.isna(row['kategori_penyakit']) else None,
+                str(row['deskripsi']) if 'deskripsi' in df.columns and not pd.isna(row['deskripsi']) else None,
+                str(row['dosis']) if 'dosis' in df.columns and not pd.isna(row['dosis']) else None,
+                str(row['efek_samping']) if 'efek_samping' in df.columns and not pd.isna(row['efek_samping']) else None,
+                str(row['komposisi']) if 'komposisi' in df.columns and not pd.isna(row['komposisi']) else None,
+                str(row['manufaktur']) if 'manufaktur' in df.columns and not pd.isna(row['manufaktur']) else None,
+                str(row['nomor_registrasi']) if 'nomor_registrasi' in df.columns and not pd.isna(row['nomor_registrasi']) else None
+            ))
+            count += 1
+            
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        flash(f'Berhasil mengimpor {count} produk', 'success')
+    except Exception as e:
+        print(f"Error in web_import_products: {e}")
+        flash(f'Terjadi kesalahan saat mengimpor data: {str(e)}', 'danger')
+        
+    return redirect(url_for('web_admin.web_products'))
+
 # ==================== WEB FOODS ====================
     
 @web_admin_bp.route('/foods-and-drinks')
@@ -1004,6 +1107,99 @@ def web_bulk_delete_drinks():
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_foods_and_drinks'))
 
+@web_admin_bp.route('/foods-and-drinks/import/template')
+@login_required
+def web_download_food_template():
+    """Download template CSV untuk import makanan/minuman"""
+    target = request.args.get('target', 'foods')
+    
+    if target == 'drinks':
+        cols = ['name', 'drink_type', 'sugar']
+        df = pd.DataFrame(columns=cols)
+        df.loc[0] = {'name': 'Teh Manis', 'drink_type': 'SWEET', 'sugar': 3}
+        filename = 'template_minuman.csv'
+    else:
+        cols = ['name', 'oil', 'simple_carb', 'sugar', 'fiber', 'fermented']
+        df = pd.DataFrame(columns=cols)
+        df.loc[0] = {'name': 'Nasi Goreng', 'oil': 3, 'simple_carb': 4, 'sugar': 1, 'fiber': 0, 'fermented': 0}
+        filename = 'template_makanan.csv'
+    
+    output = io.BytesIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+    
+    return send_file(output, mimetype='text/csv', as_attachment=True, download_name=filename)
+
+@web_admin_bp.route('/foods-and-drinks/import', methods=['POST'])
+@login_required
+def web_import_foods_drinks():
+    """Import makanan atau minuman dari file CSV atau Excel"""
+    target = request.form.get('target', 'foods')
+    if 'file' not in request.files:
+        flash('Tidak ada file yang diunggah', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+        
+    file = request.files['file']
+    if file.filename == '':
+        flash('Nama file kosong', 'danger')
+        return redirect(url_for('web_admin.web_foods_and_drinks'))
+        
+    try:
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        elif file.filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(file)
+        else:
+            flash('Format file tidak didukung', 'danger')
+            return redirect(url_for('web_admin.web_foods_and_drinks'))
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        count = 0
+        if target == 'drinks':
+            required_cols = ['name', 'drink_type', 'sugar']
+            for col in required_cols:
+                if col not in df.columns:
+                    flash(f'Kolom wajib "{col}" tidak ditemukan', 'danger')
+                    return redirect(url_for('web_admin.web_foods_and_drinks'))
+            
+            for _, row in df.iterrows():
+                if pd.isna(row['name']) or pd.isna(row['drink_type']):
+                    continue
+                cursor.execute("INSERT INTO drinks (name, drink_type, sugar) VALUES (%s, %s, %s)", (str(row['name']), str(row['drink_type']), int(row['sugar']) if not pd.isna(row['sugar']) else 0))
+                count += 1
+        else:
+            required_cols = ['name', 'oil', 'simple_carb', 'sugar', 'fiber', 'fermented']
+            for col in required_cols:
+                if col not in df.columns:
+                    flash(f'Kolom wajib "{col}" tidak ditemukan', 'danger')
+                    return redirect(url_for('web_admin.web_foods_and_drinks'))
+            
+            for _, row in df.iterrows():
+                if pd.isna(row['name']):
+                    continue
+                cursor.execute("INSERT INTO foods (name, oil, simple_carb, sugar, fiber, fermented) VALUES (%s, %s, %s, %s, %s, %s)", (
+                    str(row['name']), 
+                    int(row['oil']) if not pd.isna(row['oil']) else 0,
+                    int(row['simple_carb']) if not pd.isna(row['simple_carb']) else 0,
+                    int(row['sugar']) if not pd.isna(row['sugar']) else 0,
+                    int(row['fiber']) if not pd.isna(row['fiber']) else 0,
+                    int(row['fermented']) if not pd.isna(row['fermented']) else 0
+                ))
+                count += 1
+            
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        flash(f'Berhasil mengimpor {count} item', 'success')
+    except Exception as e:
+        print(f"Error in web_import_foods_drinks: {e}")
+        flash(f'Terjadi kesalahan: {str(e)}', 'danger')
+        
+    return redirect(url_for('web_admin.web_foods_and_drinks'))
+
 # ==================== WEB SKIN DATA ====================
 
 @web_admin_bp.route('/skin-data')
@@ -1018,10 +1214,14 @@ def web_skin_data():
         
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
-            SELECT sd.id, sd.user_id, sd.skin_condition, sd.severity, sd.notes, sd.created_at, u.name
-            FROM skin_data sd
-            JOIN users u ON sd.user_id = u.id
-            ORDER BY sd.created_at DESC
+            SELECT 'face' as type, CAST(fa.id AS CHAR) as id, fa.user_id, fa.skin_problem as skin_condition, NULL as severity, fa.notes, fa.created_at, u.name
+            FROM face_analyses fa
+            JOIN users u ON fa.user_id = u.id
+            UNION ALL
+            SELECT 'body' as type, CAST(ba.id AS CHAR) as id, ba.user_id, ba.disease_name as skin_condition, NULL as severity, ba.notes, ba.timestamp as created_at, u.name
+            FROM body_analyses ba
+            JOIN users u ON ba.user_id = u.id
+            ORDER BY created_at DESC
         """)
         skin_data = cursor.fetchall()
         
@@ -1034,24 +1234,28 @@ def web_skin_data():
         flash('Terjadi kesalahan server', 'danger')
         return redirect(url_for('web_admin.web_dashboard'))
 
-@web_admin_bp.route('/skin-data/<int:record_id>/delete', methods=['POST'])
+@web_admin_bp.route('/skin-data/<string:record_id>/delete', methods=['POST'])
 @login_required
 def web_delete_skin_record(record_id):
-    """Hapus record kulit"""
+    """Hapus record kulit (face_analyses atau body_analyses)"""
     try:
+        table_type = request.args.get('type', 'face')
         conn = get_db_connection()
         if not conn:
             flash('Gagal terhubung ke database', 'danger')
             return redirect(url_for('web_admin.web_skin_data'))
         
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM skin_data WHERE id = %s", (record_id,))
+        if table_type == 'body':
+            cursor.execute("DELETE FROM body_analyses WHERE id = %s", (record_id,))
+        else:
+            cursor.execute("DELETE FROM face_analyses WHERE id = %s", (record_id,))
         conn.commit()
         
         cursor.close()
         conn.close()
         
-        flash('Record kulit berhasil dihapus', 'success')
+        flash(f'Record {table_type} berhasil dihapus', 'success')
         return redirect(url_for('web_admin.web_skin_data'))
     except Exception as e:
         print(f"Error in web_delete_skin_record: {e}")
@@ -1063,9 +1267,9 @@ def web_delete_skin_record(record_id):
 def web_bulk_delete_skin_records():
     """Bulk hapus skin records dari admin dashboard"""
     try:
-        record_ids = request.form.getlist('record_ids')
+        record_identifiers = request.form.getlist('record_ids') # Expected format: "face:UUID" or "body:UUID"
 
-        if not record_ids:
+        if not record_identifiers:
             flash('Tidak ada record yang dipilih', 'warning')
             return redirect(url_for('web_admin.web_skin_data'))
 
@@ -1076,10 +1280,19 @@ def web_bulk_delete_skin_records():
 
         cursor = conn.cursor()
 
-        # Delete skin records
-        placeholders = ','.join(['%s'] * len(record_ids))
-        cursor.execute(f"DELETE FROM skin_data WHERE id IN ({placeholders})", record_ids)
-        deleted_count = cursor.rowcount
+        face_ids = [ri.split(':')[1] for ri in record_identifiers if ri.startswith('face:') and ':' in ri]
+        body_ids = [ri.split(':')[1] for ri in record_identifiers if ri.startswith('body:') and ':' in ri]
+        
+        deleted_count = 0
+        if face_ids:
+            placeholders = ','.join(['%s'] * len(face_ids))
+            cursor.execute(f"DELETE FROM face_analyses WHERE id IN ({placeholders})", face_ids)
+            deleted_count += cursor.rowcount
+            
+        if body_ids:
+            placeholders = ','.join(['%s'] * len(body_ids))
+            cursor.execute(f"DELETE FROM body_analyses WHERE id IN ({placeholders})", body_ids)
+            deleted_count += cursor.rowcount
 
         conn.commit()
         cursor.close()
