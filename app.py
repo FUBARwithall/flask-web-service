@@ -1,7 +1,11 @@
 ﻿from flask import Flask, jsonify, redirect, url_for, send_from_directory
 from flask_cors import CORS
+from dotenv import load_dotenv
 import resend
 import os
+
+# Load environment variables
+load_dotenv()
 from config import SECRET_KEY, UPLOAD_FOLDER, RESEND_FROM_EMAIL
 from flask_jwt_extended import JWTManager
 from flask_mysqldb import MySQL

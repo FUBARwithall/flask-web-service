@@ -20,8 +20,12 @@ kb = None
 llm = None
 models_lock = Lock()
 
-# Konfigurasi Logging
-logging.basicConfig(level=logging.INFO)
+# Konfigurasi Logging - Pastikan level INFO tampil di terminal
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # --- KEYWORDS CONFIGURATION ---
 
@@ -60,8 +64,11 @@ SPAM_KEYWORDS = [
 
 def is_greeting(text: str) -> bool:
     text_lower = text.lower().strip()
-    return any(text_lower == g for g in GREETING_KEYWORDS) or \
-           any(text_lower.startswith(g) and len(text_lower) < 15 for g in GREETING_KEYWORDS)
+    # Exact match for greetings
+    if any(text_lower == g for g in GREETING_KEYWORDS):
+        return True
+    # Start with greeting + word boundary (e.g., "halo bot") and length limit
+    return any(re.search(rf"^{re.escape(g)}\b", text_lower) and len(text_lower) < 15 for g in GREETING_KEYWORDS)
 
 def is_thanks(text: str) -> bool:
     text_lower = text.lower().strip()
@@ -71,11 +78,16 @@ def is_skin_related(text: str) -> bool:
     if not text:
         return False
     text_lower = text.lower()
-    if any(bl in text_lower for bl in BLACKLIST_KEYWORDS):
-        return False
+    
+    # Gunakan word boundaries untuk blacklist agar tidak salah deteksi (misal: "atasi" mengandung "tas")
+    for bl in BLACKLIST_KEYWORDS:
+        if re.search(rf"\b{re.escape(bl)}\b", text_lower):
+            return False
+            
     has_skin_keyword = any(k in text_lower for k in SKIN_KEYWORDS)
     if has_skin_keyword:
         return True
+        
     if "kulit" in text_lower:
         health_context = [
             "wajah", "muka", "pipi", "dahi", "hidung", "dagu",
@@ -89,7 +101,7 @@ def is_skin_related(text: str) -> bool:
 
 def download_kb_from_hf():
     try:
-        logging.info("📥 Downloading KB from HuggingFace...")
+        logger.info("📥 Downloading KB from HuggingFace...")
         kb_path = hf_hub_download(
             repo_id="Ardian122/skin-embeddings-v5",
             filename="skin_kb.pkl",
@@ -97,7 +109,7 @@ def download_kb_from_hf():
         )
         return kb_path
     except Exception as e:
-        logging.warning(f"⚠️ HF download failed: {str(e)}")
+        logger.warning(f"⚠️ HF download failed: {str(e)}")
         return "skin_kb.pkl" if os.path.exists("skin_kb.pkl") else None
 
 def load_models():
@@ -108,12 +120,26 @@ def load_models():
         try:
             HF_TOKEN = os.getenv("HF_TOKEN")
             if not HF_TOKEN:
-                logging.error("❌ HF_TOKEN not found in environment")
+                logger.error("❌ HF_TOKEN not found in environment")
                 return False
             
             kb_path = download_kb_from_hf()
             if not kb_path: return False
             
+            # Fix for Windows: detect and resolve HF pointer files
+            if os.path.exists(kb_path) and os.path.getsize(kb_path) < 500:
+                try:
+                    with open(kb_path, "r") as f:
+                        pointer_content = f.read().strip()
+                        if pointer_content.startswith("../../blobs/"):
+                            # Resolve the relative path to the actual blob file
+                            actual_kb_path = os.path.abspath(os.path.join(os.path.dirname(kb_path), pointer_content))
+                            if os.path.exists(actual_kb_path):
+                                logger.info(f"🔗 Resolved HF pointer: {actual_kb_path}")
+                                kb_path = actual_kb_path
+                except Exception as e:
+                    logger.warning(f"⚠️ Failed to resolve pointer file: {str(e)}")
+
             with open(kb_path, "rb") as f:
                 kb = pickle.load(f)
             
@@ -123,62 +149,16 @@ def load_models():
             
             embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
             llm = InferenceClient(token=HF_TOKEN)
-            logging.info("✅ All models loaded successfully")
+            logger.info("✅ All models loaded successfully")
             return True
         except Exception as e:
-            logging.error(f"❌ Model loading failed: {str(e)}")
+            logger.error(f"❌ Model loading failed: {str(e)}")
             return False
-        
-# Tambah di atas fungsi search_similar()
-def rerank_documents(query, docs, top_k=3):
-    """MRR Reranker - Pilih dokumen paling relevan"""
-    if not docs:
-        return []
-    
-    # Cross-encoder reranker (lebih akurat dari cosine similarity)
-    try:
-        reranker = SentenceTransformer('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        pairs = [[query, doc] for doc in docs]
-        scores = reranker.predict(pairs)
-        
-        # Rerank berdasarkan score
-        ranked = sorted(zip(docs, scores), key=lambda x: x[1], reverse=True)
-        return [doc for doc, score in ranked[:top_k]]
-    except:
-        # Fallback ke cosine similarity jika reranker gagal
-        return docs[:top_k]
 
-def search_similar(query, top_k=5, min_score=0.45):  # top_k naik ke 5
-    if not embedder or not kb: 
-        return []
-    
-    try:
-        q_emb = embedder.encode(query, normalize_embeddings=True)
-        sims = np.dot(kb["embeddings"], q_emb)
-        idx = np.argsort(sims)[::-1]
+# Panggil load_models() saat module di-import agar inisialisasi terlihat di log terminal
+# Note: Ini akan berjalan saat Flask (app.py) melakukan import blueprint
+load_models()
         
-        # Ambil kandidat lebih banyak untuk reranking
-        candidates = []
-        for i in idx:
-            if len(candidates) >= top_k * 2:  # 10 kandidat untuk rerank
-                break
-            score = float(sims[i])
-            if score < min_score:
-                continue
-            
-            doc_text = kb["documents"][i]['text']
-            if any(spam in doc_text.lower() for spam in SPAM_KEYWORDS):
-                continue
-            candidates.append(doc_text)
-        
-        # MRR: Rerank kandidat
-        reranked_docs = rerank_documents(query, candidates, top_k)
-        logging.info(f"MRR: {len(candidates)} → {len(reranked_docs)} dokumen")
-        
-        return reranked_docs
-    except Exception as e:
-        logging.error(f"MRR Search error: {str(e)}")
-        return []
 
 # Tambah endpoint untuk debugging MRR
 @chatbot_bp.route("/debug", methods=["POST"])
@@ -210,7 +190,7 @@ def search_similar(query, top_k=5, min_score=0.45):
         return []
     
     try:
-        logging.info(f"🔍 MRR Query: '{query}' - Starting embedding search...")
+        logger.info(f"🔍 MRR Query: '{query}' - Starting embedding search...")
         q_emb = embedder.encode(query, normalize_embeddings=True)
         sims = np.dot(kb["embeddings"], q_emb)
         idx = np.argsort(sims)[::-1]
@@ -229,18 +209,18 @@ def search_similar(query, top_k=5, min_score=0.45):
                 continue
             candidates.append(doc_text)
         
-        logging.info(f"📊 MRR: {len(kb['documents'])} total docs → {len(candidates)} candidates (min_score={min_score})")
+        logger.info(f"📊 MRR: {len(kb['documents'])} total docs → {len(candidates)} candidates (min_score={min_score})")
         
         # MRR Simple Reranking (ringan)
         reranked_docs = simple_mrr(query, candidates, top_k)
         
-        logging.info(f"✅ MRR: {len(candidates)} candidates → {len(reranked_docs)} final docs")
-        logging.info(f"📄 Top docs: {reranked_docs[0][:100]}..." if reranked_docs else "❌ No docs after MRR")
+        logger.info(f"✅ MRR: {len(candidates)} candidates → {len(reranked_docs)} final docs")
+        logger.info(f"📄 Top docs: {reranked_docs[0][:100]}..." if reranked_docs else "❌ No docs after MRR")
         
         return reranked_docs
         
     except Exception as e:
-        logging.error(f"💥 MRR Error: {str(e)}")
+        logger.error(f"💥 MRR Error: {str(e)}")
         return []
 
 def simple_mrr(query, docs, top_k=3):
@@ -265,7 +245,7 @@ def simple_mrr(query, docs, top_k=3):
         scores.append((doc, mrr_score))
     
     ranked = sorted(scores, key=lambda x: x[1], reverse=True)
-    logging.info(f"📈 MRR Scores: {[f'{s:.3f}' for _, s in ranked[:3]]}")
+    logger.info(f"📈 MRR Scores: {[f'{s:.3f}' for _, s in ranked[:3]]}")
     
     return [doc for doc, _ in ranked[:top_k]]
 
@@ -407,7 +387,7 @@ def chat():
     except Exception as e:
         if conn:
             conn.rollback()
-        logging.error(f"❌ Chat error: {str(e)}")
+        logger.error(f"❌ Chat error: {str(e)}")
         return jsonify({"success": False, "reply": "⚠️ Terjadi kesalahan pada server Glowie."}), 500
 
     finally:
