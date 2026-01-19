@@ -17,32 +17,13 @@
     .table th:hover { background: #e2e8f0; }
     .table th.sortable { position: relative; }
     .table th.sortable::after { content: '↕'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; opacity: 0.5; }
-    .table th.sort-asc::after { content: '↑'; opacity: 1; }
+    .table th.sort-asc::after { content: '↑'; opacity:1; }
     .table th.sort-desc::after { content: '↓'; opacity: 1; }
     .checkbox-column { width: 40px; }
-    .bulk-actions { 
-        display: flex; 
-        gap: 8px; 
-        align-items: center; 
-        padding: 12px 24px; 
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-    }
+    .bulk-actions { display: flex; gap: 8px; align-items: center; padding: 12px 24px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
     .bulk-actions.hidden { display: none; }
-    .bulk-actions label {
-        font-size: 0.9rem;
-        color: #475569;
-        margin: 0;
-        cursor: pointer;
-        user-select: none;
-        font-weight: 500;
-    }
-    .checkbox-input { 
-        margin: 0; 
-        cursor: pointer;
-        width: 16px;
-        height: 16px;
-    }
+    .bulk-actions label { font-size: 0.9rem; color: #475569; margin: 0; cursor: pointer; user-select: none; font-weight: 500; }
+    .checkbox-input { margin: 0; cursor: pointer; width: 16px; height: 16px; }
     .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
     .table tbody tr:hover { background: #f8fafc; }
     .table tbody tr.clickable-row { cursor: pointer; }
@@ -58,6 +39,27 @@
     .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 0; margin-top: 24px; color: #1e40af; }
     .info-box i { margin-right: 8px; }
     .info-box strong { font-weight: 600; }
+    .badge-admin { background: #fef3c7 !important; color: #92400e !important; }
+    .badge-user { background: #e0f2fe !important; color: #0369a1 !important; }
+
+    /* Search & Filter Styles */
+    .table-controls { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: white; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; gap: 12px; }
+    .search-box { position: relative; flex: 1; min-width: 250px; max-width: 400px; }
+    .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .search-box input { width: 100%; padding: 10px 10px 10px 38px; border: 1px solid #e2e8f0; border-radius: 0; outline: none; transition: border-color 0.2s; font-size: 0.9rem; }
+    .search-box input:focus { border-color: #3b82f6; }
+    .filter-group { display: flex; gap: 8px; align-items: center; }
+    .filter-btn { padding: 8px 14px; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; font-weight: 500; }
+    .filter-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .filter-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .entries-info { font-size: 0.85rem; color: #64748b; white-space: nowrap; }
+    
+    .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+    .pagination-buttons { display: flex; gap: 4px; }
+    .page-btn { padding: 6px 12px; border: 1px solid #e2e8f0; background: white; color: #475569; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+    .page-btn:hover:not(:disabled) { background: #f1f5f9; color: #3b82f6; border-color: #3b82f6; }
+    .page-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
 {% endblock %}
 
@@ -79,6 +81,22 @@
             <i class="fas fa-trash"></i> Hapus Terpilih
         </button>
     </div>
+
+    <div class="table-controls">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="tableSearch" placeholder="Cari nama atau email...">
+        </div>
+        <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">Semua</button>
+            <button class="filter-btn" data-filter="user">User</button>
+            <button class="filter-btn" data-filter="admin">Admin</button>
+        </div>
+        <div class="entries-info" id="entriesInfo">
+            Menampilkan 0 - 0 dari 0 users
+        </div>
+    </div>
+
     <div style="overflow-x: auto;">
         <table class="table" id="usersTable">
             <thead>
@@ -89,6 +107,7 @@
                     <th class="sortable" data-column="id">ID</th>
                     <th class="sortable" data-column="name">Nama</th>
                     <th class="sortable" data-column="email">Email</th>
+                    <th class="sortable" data-column="role">Role</th>
                     <th class="sortable" data-column="created_at">Tanggal Daftar</th>
                     <th>Aksi</th>
                 </tr>
@@ -99,9 +118,14 @@
                     <td>
                         <input type="checkbox" class="row-checkbox checkbox-input" value="{{ user.id }}">
                     </td>
-                    <td>#{{ user.id }}</td>
+                    <td>{{ user.id }}</td>
                     <td><strong>{{ user.name }}</strong></td>
                     <td>{{ user.email }}</td>
+                    <td>
+                        <span class="badge badge-{{ 'admin' if user.is_admin else 'user' }}">
+                            {{ 'Admin' if user.is_admin else 'User' }}
+                        </span>
+                    </td>
                     <td style="font-size: 0.85rem; color: #64748b;">{{ user.created_at }}</td>
                     <td>
                         <form method="POST" action="{{ url_for('web_admin.web_delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus user ini? Data terkait juga akan dihapus.');">
@@ -114,6 +138,13 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <div class="pagination-container" id="pagination">
+        <div class="entries-info" id="paginationInfo">Halaman 1 dari 1</div>
+        <div class="pagination-buttons" id="paginationBtns">
+            <!-- Dynamically generated -->
+        </div>
     </div>
     {% else %}
     <div class="empty-state">
@@ -133,66 +164,152 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectAllHeader = document.getElementById('selectAllHeader');
     const selectAll = document.getElementById('selectAll');
     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const tableSearch = document.getElementById('tableSearch');
+    const entriesInfo = document.getElementById('entriesInfo');
+    const paginationBtns = document.getElementById('paginationBtns');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const filterBtns = document.querySelectorAll('.filter-btn');
 
-    // Sorting functionality
+    let allRows = Array.from(tbody.querySelectorAll('tr'));
+    let filteredRows = [...allRows];
+    let currentPage = 1;
+    const rowsPerPage = 15;
     let currentSort = { column: 'created_at', direction: 'desc' };
+    let activeFilter = 'all';
+
+    function renderTable() {
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageRows = filteredRows.slice(start, end);
+
+        tbody.innerHTML = '';
+        if (pageRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color:#94a3b8;">Data tidak ditemukan</td></tr>';
+        } else {
+            pageRows.forEach(row => tbody.appendChild(row));
+        }
+
+        updatePagination();
+        updateEntriesInfo(start, end);
+        updateBulkActions();
+    }
+
+    function updateEntriesInfo(start, end) {
+        const total = filteredRows.length;
+        const actualEnd = Math.min(end, total);
+        const displayStart = total === 0 ? 0 : start + 1;
+        entriesInfo.textContent = `Menampilkan ${displayStart} - ${actualEnd} dari ${total} users`;
+    }
+
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        paginationInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
+        
+        paginationBtns.innerHTML = '';
+        
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; renderTable(); } };
+        paginationBtns.appendChild(prevBtn);
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                const btn = document.createElement('button');
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                paginationBtns.appendChild(btn);
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                const span = document.createElement('span');
+                span.textContent = '...';
+                span.style.padding = '0 8px';
+                paginationBtns.appendChild(span);
+            }
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => { if(currentPage < totalPages) { currentPage++; renderTable(); } };
+        paginationBtns.appendChild(nextBtn);
+    }
 
     function sortTable(column, direction) {
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-
-        rows.sort((a, b) => {
+        filteredRows.sort((a, b) => {
             let aVal, bVal;
 
             if (column === 'id') {
-                aVal = parseInt(a.querySelector('td:nth-child(2)').textContent.replace('#', ''));
-                bVal = parseInt(b.querySelector('td:nth-child(2)').textContent.replace('#', ''));
+                aVal = parseInt(a.cells[1].textContent.replace('#', '')) || 0;
+                bVal = parseInt(b.cells[1].textContent.replace('#', '')) || 0;
             } else if (column === 'created_at') {
-                aVal = new Date(a.cells[4].textContent.trim());
-                bVal = new Date(b.cells[4].textContent.trim());
+                aVal = new Date(a.cells[5].textContent.trim());
+                bVal = new Date(b.cells[5].textContent.trim());
+            } else if (column === 'role') {
+                aVal = a.cells[4].textContent.trim();
+                bVal = b.cells[4].textContent.trim();
             } else {
-                const columnIndex = ['id', 'name', 'email', 'created_at'].indexOf(column) + 1;
-                aVal = a.cells[columnIndex]?.textContent?.trim() || '';
-                bVal = b.cells[columnIndex]?.textContent?.trim() || '';
+                const map = { name: 2, email: 3 };
+                aVal = a.cells[map[column]]?.textContent?.trim() || '';
+                bVal = b.cells[map[column]]?.textContent?.trim() || '';
             }
 
-            if (direction === 'asc') {
-                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-            } else {
-                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-            }
+            return direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
         });
-
-        rows.forEach(row => tbody.appendChild(row));
+        currentPage = 1;
+        renderTable();
     }
 
-    // Add click handlers to sortable headers
+    function applyFilters() {
+        const query = tableSearch.value.toLowerCase().trim();
+        
+        filteredRows = allRows.filter(row => {
+            const userName = row.cells[2].textContent.toLowerCase();
+            const userEmail = row.cells[3].textContent.toLowerCase();
+            const roleCell = row.cells[4].querySelector('.badge');
+            const role = roleCell ? (roleCell.classList.contains('badge-admin') ? 'admin' : 'user') : 'user';
+            
+            const matchesSearch = userName.includes(query) || userEmail.includes(query);
+            const matchesFilter = activeFilter === 'all' || role === activeFilter;
+            
+            return matchesSearch && matchesFilter;
+        });
+        
+        currentPage = 1;
+        renderTable();
+    }
+
+    tableSearch.addEventListener('input', applyFilters);
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
     document.querySelectorAll('.sortable').forEach(header => {
         header.addEventListener('click', () => {
             const column = header.dataset.column;
-
-            // Remove previous sort indicators
-            document.querySelectorAll('.sortable').forEach(h => {
-                h.classList.remove('sort-asc', 'sort-desc');
-            });
-
-            // Toggle sort direction
+            document.querySelectorAll('.sortable').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
             if (currentSort.column === column) {
                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
             } else {
                 currentSort.column = column;
                 currentSort.direction = 'asc';
             }
-
             header.classList.add(`sort-${currentSort.direction}`);
             sortTable(column, currentSort.direction);
         });
     });
 
-    // Bulk selection functionality
     function updateBulkActions() {
-        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-        const totalCheckboxes = rowCheckboxes.length;
+        const pageCheckboxes = tbody.querySelectorAll('.row-checkbox');
+        const checkedBoxes = tbody.querySelectorAll('.row-checkbox:checked');
 
         if (checkedBoxes.length > 0) {
             bulkActions.classList.remove('hidden');
@@ -203,18 +320,14 @@ document.addEventListener("DOMContentLoaded", () => {
             bulkDeleteBtn.disabled = true;
         }
 
-        // Update select all checkboxes
-        selectAll.checked = checkedBoxes.length === totalCheckboxes && totalCheckboxes > 0;
+        selectAll.checked = pageCheckboxes.length > 0 && checkedBoxes.length === pageCheckboxes.length;
         selectAllHeader.checked = selectAll.checked;
     }
 
-    // Select all functionality
     if (selectAllHeader) {
         selectAllHeader.addEventListener('change', () => {
             const isChecked = selectAllHeader.checked;
-            rowCheckboxes.forEach(checkbox => {
-                checkbox.checked = isChecked;
-            });
+            tbody.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = isChecked);
             selectAll.checked = isChecked;
             updateBulkActions();
         });
@@ -223,35 +336,26 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectAll) {
         selectAll.addEventListener('change', () => {
             const isChecked = selectAll.checked;
-            rowCheckboxes.forEach(checkbox => {
-                checkbox.checked = isChecked;
-            });
+            tbody.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = isChecked);
             selectAllHeader.checked = isChecked;
             updateBulkActions();
         });
     }
 
-    // Individual checkbox changes
-    rowCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            e.stopPropagation(); // Prevent row click
+    tbody.addEventListener('change', (e) => {
+        if (e.target.classList.contains('row-checkbox')) {
             updateBulkActions();
-        });
+        }
     });
 
-    // Bulk delete functionality
     if (bulkDeleteBtn) {
         bulkDeleteBtn.addEventListener('click', () => {
-            const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-
+            const selectedIds = Array.from(tbody.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
             if (selectedIds.length === 0) return;
-
             if (confirm(`Yakin ingin menghapus ${selectedIds.length} user terpilih? Data terkait juga akan dihapus.`)) {
-                // Create form and submit
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '{{ url_for("web_admin.web_bulk_delete_users") }}';
-
                 selectedIds.forEach(id => {
                     const input = document.createElement('input');
                     input.type = 'hidden';
@@ -259,32 +363,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     input.value = id;
                     form.appendChild(input);
                 });
-
                 document.body.appendChild(form);
                 form.submit();
             }
         });
     }
 
-    // Make rows clickable
-    document.querySelectorAll('.clickable-row').forEach(row => {
-        row.addEventListener('click', (e) => {
-            // Don't navigate if clicking checkbox, button, or form
-            if (e.target.closest('input[type="checkbox"]') || 
-                e.target.closest('button') || 
-                e.target.closest('form')) {
-                return;
-            }
-            window.location.href = row.dataset.url;
-        });
+    tbody.addEventListener('click', (e) => {
+        const row = e.target.closest('.clickable-row');
+        if (!row) return;
+        if (e.target.closest('input[type="checkbox"]') || e.target.closest('button') || e.target.closest('form')) {
+            return;
+        }
+        window.location.href = row.dataset.url;
     });
 
-    // Initial sort
     sortTable('created_at', 'desc');
-    const createdAtHeader = document.querySelector('[data-column="created_at"]');
-    if (createdAtHeader) {
-        createdAtHeader.classList.add('sort-desc');
-    }
+    const dateHeader = document.querySelector('[data-column="created_at"]');
+    if (dateHeader) dateHeader.classList.add('sort-desc');
 });
 </script>
 {% endblock %}

@@ -166,7 +166,7 @@ def web_users():
             return redirect(url_for('web_admin.web_dashboard'))
         
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, email, created_at FROM users WHERE is_admin = 0 ORDER BY created_at DESC")
+        cursor.execute("SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC")
         users = cursor.fetchall()
         
         cursor.close()

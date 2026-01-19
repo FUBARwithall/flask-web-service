@@ -103,7 +103,7 @@
                 <td>
                     <input type="checkbox" class="row-checkbox checkbox-input" value="{{ a.id }}">
                 </td>
-                <td>#{{ a.id }}</td>
+                <td>{{ a.id }}</td>
                 <td>
                     {% if a.image %}
                     <img src="{{ url_for('web_admin.uploaded_file', filename=a.image) }}" alt="Gambar Artikel" class="image-thumbnail">
