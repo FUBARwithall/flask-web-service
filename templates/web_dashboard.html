@@ -195,6 +195,10 @@
         <div class="stat-value">{{ total_products }}</div>
     </div>
     <div class="stat-card">
+        <div class="stat-label">Total Komentar</div>
+        <div class="stat-value">{{ total_comments }}</div>
+    </div>
+    <div class="stat-card">
         <div class="stat-label">Total Records</div>
         <div class="stat-value">{{ total_records }}</div>
     </div>
@@ -216,9 +220,14 @@
                         <div style="font-size: 0.75rem; color: #64748b;">{{ pending_comments }} belum diklasifikasi</div>
                     </div>
                 </div>
-                <button id="btnClassifyAll" class="btn btn-primary" {% if pending_comments == 0 %}disabled{% endif %}>
-                    <i class="fas fa-magic"></i> Proses
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <a href="{{ url_for('web_admin.web_comments') }}" class="btn" style="background: #e2e8f0; color: #475569;">
+                        <i class="fas fa-list"></i> Lihat Semua
+                    </a>
+                    <button id="btnClassifyAll" class="btn btn-primary" {% if pending_comments == 0 %}disabled{% endif %}>
+                        <i class="fas fa-magic"></i> Proses
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -352,19 +361,18 @@
 
     // 4. Sentiment (Doughnut)
     if (sentimentData.length > 0) {
-        const aggregated = { 'Positive': 0, 'Negative': 0, 'Neutral': 0 };
+        const aggregated = { 'Positive': 0, 'Negative': 0 };
         sentimentData.forEach(item => {
             let label = String(item[0] || item.sentiment).toLowerCase();
             let count = item[1] || item.count;
             if (label.includes('pos')) aggregated['Positive'] += count;
-            else if (label.includes('neg')) aggregated['Negative'] += count;
-            else aggregated['Neutral'] += count;
+            else aggregated['Negative'] += count; // Treat everything else (likely negative) as Negative since it's 2-class
         });
         
         // Remove zero values
         const labels = Object.keys(aggregated).filter(k => aggregated[k] > 0);
         const values = labels.map(k => aggregated[k]);
-        const colors = labels.map(l => l === 'Positive' ? '#10b981' : l === 'Negative' ? '#ef4444' : '#3b82f6');
+        const colors = labels.map(l => l === 'Positive' ? '#10b981' : '#ef4444');
 
         new Chart(document.getElementById('sentimentChart'), {
             type: 'doughnut',

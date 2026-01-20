@@ -126,7 +126,10 @@ def web_dashboard():
         cursor.execute("SELECT disease_name, COUNT(*) as count FROM body_analyses GROUP BY disease_name")
         body_disease_stats = cursor.fetchall()
 
-        # Pending comments for classification
+        # Total and pending comments
+        cursor.execute("SELECT COUNT(*) as count FROM product_comments")
+        total_comments = cursor.fetchone()['count']
+
         cursor.execute("SELECT COUNT(*) as count FROM product_comments WHERE sentiment IS NULL")
         pending_comments = cursor.fetchone()['count']
 
@@ -143,6 +146,7 @@ def web_dashboard():
                              total_records=total_records,
                              total_articles=total_articles,
                              total_products=total_products,
+                             total_comments=total_comments,
                              recent_users=recent_users,
                              face_type_stats=face_type_stats,
                              face_problem_stats=face_problem_stats,
@@ -1225,6 +1229,73 @@ def web_import_foods_drinks():
         flash(f'Terjadi kesalahan: {str(e)}', 'danger')
         
     return redirect(url_for('web_admin.web_foods_and_drinks'))
+
+# ==================== WEB COMMENTS ====================
+
+@web_admin_bp.route('/comments')
+@login_required
+def web_comments():
+    """Halaman manajemen komentar produk"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_dashboard'))
+
+        cursor = conn.cursor(dictionary=True)
+        # Fetch all comments with user and product names
+        cursor.execute("""
+            SELECT 
+                c.id, 
+                c.comment as comment_text, 
+                c.created_at, 
+                c.sentiment,
+                u.name as user_name,
+                p.nama as product_name
+            FROM product_comments c
+            JOIN users u ON c.user_id = u.id
+            JOIN products p ON c.product_id = p.id
+            ORDER BY c.created_at DESC
+        """)
+        comments = cursor.fetchall()
+
+        # Format datetime for JSON/JS serialization in the template
+        for comment in comments:
+            if comment['created_at']:
+                comment['created_at'] = comment['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+
+        cursor.close()
+        conn.close()
+
+        return render_template('web_comments.html', comments=comments)
+    except Exception as e:
+        print(f"Error in web_comments: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_dashboard'))
+
+@web_admin_bp.route('/comments/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def web_delete_comment(comment_id):
+    """Hapus komentar dari admin dashboard"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            flash('Gagal terhubung ke database', 'danger')
+            return redirect(url_for('web_admin.web_comments'))
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM product_comments WHERE id = %s", (comment_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        flash('Komentar berhasil dihapus', 'success')
+        return redirect(url_for('web_admin.web_comments'))
+    except Exception as e:
+        print(f"Error in web_delete_comment: {e}")
+        flash('Terjadi kesalahan server', 'danger')
+        return redirect(url_for('web_admin.web_comments'))
 
 # ==================== WEB SKIN DATA ====================
 

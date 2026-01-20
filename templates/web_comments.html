@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+
+{% block title %}Komentar Produk - Skin Health Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
+    .page-header i { color: #3b82f6; }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 0;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+    }
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #3b82f6;
+        margin-bottom: 4px;
+    }
+    .stat-label {
+        color: #64748b;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stat-card.positive .stat-value { color: #10b981; }
+    .stat-card.negative .stat-value { color: #ef4444; }
+    .stat-card.neutral .stat-value { color: #f59e0b; }
+
+    /* Charts Section */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .chart-card {
+        background: white;
+        border-radius: 0;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+    }
+    .chart-card h3 {
+        color: #2c3e50;
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .chart-container {
+        position: relative;
+        height: 280px;
+        width: 100%;
+    }
+
+    /* Table Styles */
+    .table-card { background: white; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; margin-top: 24px; }
+    .table-header { padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .table-header-title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #1e293b; }
+    .badge { padding: 4px 12px; border-radius: 0; font-size: 0.8rem; font-weight: 600; background: #dbeafe; color: #1e40af; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table thead { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
+    .table th:hover { background: #e2e8f0; }
+    .table th.sortable { position: relative; }
+    .table th.sortable::after { content: '↕'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; opacity: 0.5; }
+    .table th.sort-asc::after { content: '↑'; opacity:1; }
+    .table th.sort-desc::after { content: '↓'; opacity: 1; }
+    .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .table tbody tr:hover { background: #f8fafc; }
+    
+    /* Sentiment Badges */
+    .badge-sentiment { padding: 4px 12px; border-radius: 0; font-size: 0.8rem; font-weight: 600; }
+    .badge-positive { background: #dcfce7; color: #166534; }
+    .badge-negative { background: #fee2e2; color: #991b1b; }
+    .badge-neutral { background: #fef3c7; color: #92400e; }
+    
+    /* Rating Stars */
+    .rating-stars { color: #fbbf24; }
+    
+    /* Buttons */
+    .btn { padding: 8px 14px; border-radius: 0; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 0.85rem; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+    
+    /* Search & Filter Styles */
+    .table-controls { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: white; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; gap: 12px; }
+    .search-box { position: relative; flex: 1; min-width: 250px; max-width: 400px; }
+    .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .search-box input { width: 100%; padding: 10px 10px 10px 38px; border: 1px solid #e2e8f0; border-radius: 0; outline: none; transition: border-color 0.2s; font-size: 0.9rem; }
+    .search-box input:focus { border-color: #3b82f6; }
+    .filter-group { display: flex; gap: 8px; align-items: center; }
+    .filter-btn { padding: 8px 14px; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; font-weight: 500; }
+    .filter-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .filter-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .entries-info { font-size: 0.85rem; color: #64748b; white-space: nowrap; }
+    
+    .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+    .pagination-buttons { display: flex; gap: 4px; }
+    .page-btn { padding: 6px 12px; border: 1px solid #e2e8f0; background: white; color: #475569; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+    .page-btn:hover:not(:disabled) { background: #f1f5f9; color: #3b82f6; border-color: #3b82f6; }
+    .page-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .empty-state { padding: 60px 20px; text-align: center; }
+    .empty-state i { font-size: 3rem; color: #cbd5e1; }
+    .empty-state p { color: #94a3b8; margin-top: 12px; }
+
+    /* Comment text preview */
+    .comment-text { 
+        max-width: 400px; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        white-space: nowrap; 
+    }
+
+    @media (max-width: 768px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+        .chart-container {
+            height: 220px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-comments"></i> Komentar Produk</h1>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Komentar</div>
+        <div class="stat-value">{{ comments|length }}</div>
+    </div>
+    <div class="stat-card positive">
+        <div class="stat-label">Positif</div>
+        <div class="stat-value" id="positiveCount">0</div>
+    </div>
+    <div class="stat-card negative">
+        <div class="stat-label">Negatif</div>
+        <div class="stat-value" id="negativeCount">0</div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3><i class="fas fa-chart-pie"></i> Distribusi Sentimen</h3>
+        <div class="chart-container">
+            <canvas id="sentimentChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3><i class="fas fa-chart-line"></i> Tren Komentar (30 Hari)</h3>
+        <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Comments Table -->
+<div class="table-card">
+    <div class="table-header">
+        <div class="table-header-title"><i class="fas fa-list"></i> Semua Komentar</div>
+        <span class="badge">{{ comments|length }} komentar</span>
+    </div>
+    
+    {% if comments %}
+    <div class="table-controls">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="tableSearch" placeholder="Cari user, produk, atau komentar...">
+        </div>
+        <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">Semua</button>
+            <button class="filter-btn" data-filter="positive">Positif</button>
+            <button class="filter-btn" data-filter="negative">Negatif</button>
+        </div>
+        <div class="entries-info" id="entriesInfo">
+            Menampilkan 0 - 0 dari 0 komentar
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="table" id="commentsTable">
+            <thead>
+                <tr>
+                    <th class="sortable" data-column="id">ID</th>
+                    <th class="sortable" data-column="user">User</th>
+                    <th class="sortable" data-column="product">Produk</th>
+                    <th class="sortable" data-column="comment">Komentar</th>
+                    <th class="sortable" data-column="sentiment">Sentimen</th>
+                    <th class="sortable" data-column="created_at">Tanggal</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comment in comments %}
+                <tr>
+                    <td style="font-size: 0.75rem; color: #64748b;" title="{{ comment.id }}">{{ (comment.id|string)[:8] }}...</td>
+                    <td><strong>{{ comment.user_name }}</strong></td>
+                    <td>{{ comment.product_name }}</td>
+                    <td class="comment-text" title="{{ comment.comment_text }}">{{ comment.comment_text }}</td>
+                    <td>
+                        <span class="badge badge-sentiment badge-{{ comment.sentiment|lower if comment.sentiment else 'neutral' }}">
+                            {{ comment.sentiment if comment.sentiment else 'Pending' }}
+                        </span>
+                    </td>
+                    <td style="font-size: 0.85rem; color: #64748b;">{{ comment.created_at }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('web_admin.web_delete_comment', comment_id=comment.id) }}" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus komentar ini?');">
+                            <button type="submit" class="btn btn-danger" title="Hapus Komentar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-container" id="pagination">
+        <div class="entries-info" id="paginationInfo">Halaman 1 dari 1</div>
+        <div class="pagination-buttons" id="paginationBtns">
+            <!-- Dynamically generated -->
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>Belum ada komentar produk</p>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script type="application/json" id="commentsData">{{ comments | tojson | safe }}</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const commentsData = JSON.parse(document.getElementById('commentsData').textContent || '[]');
+    
+    // Calculate sentiment counts
+    const sentimentCounts = { 'positive': 0, 'negative': 0 };
+    
+    // Process comments data
+    commentsData.forEach(comment => {
+        const sentiment = (comment.sentiment || '').toLowerCase();
+        
+        if (sentimentCounts[sentiment] !== undefined) {
+            sentimentCounts[sentiment]++;
+        }
+    });
+    
+    // Update stat cards
+    document.getElementById('positiveCount').textContent = sentimentCounts.positive;
+    document.getElementById('negativeCount').textContent = sentimentCounts.negative;
+    
+    // Chart options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 10, boxWidth: 12, font: { size: 11 } }
+            }
+        }
+    };
+    
+    // 1. Sentiment Distribution Chart (Doughnut)
+    new Chart(document.getElementById('sentimentChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Positif', 'Negatif'],
+            datasets: [{
+                data: [sentimentCounts.positive, sentimentCounts.negative],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            ...commonOptions,
+            cutout: '65%',
+            plugins: {
+                ...commonOptions.plugins,
+                legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } }
+            }
+        }
+    });
+    
+    // 2. Trend Chart (Line - Last 30 days)
+    const today = new Date();
+    const last30Days = {};
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        last30Days[dateStr] = 0;
+    }
+    
+    commentsData.forEach(comment => {
+        const dateStr = comment.created_at.split(' ')[0]; // Assuming format "YYYY-MM-DD HH:MM:SS"
+        if (last30Days[dateStr] !== undefined) {
+            last30Days[dateStr]++;
+        }
+    });
+    
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: Object.keys(last30Days).map(d => {
+                const date = new Date(d);
+                return `${date.getDate()}/${date.getMonth() + 1}`;
+            }),
+            datasets: [{
+                label: 'Komentar',
+                data: Object.values(last30Days),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 10 } }
+                },
+                x: { 
+                    ticks: { maxTicksLimit: 10, font: { size: 9 } }
+                }
+            }
+        }
+    });
+    
+    // Table functionality
+    const table = document.getElementById('commentsTable');
+    if (!table) return;
+    
+    const tbody = table.querySelector('tbody');
+    const tableSearch = document.getElementById('tableSearch');
+    const entriesInfo = document.getElementById('entriesInfo');
+    const paginationBtns = document.getElementById('paginationBtns');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    let allRows = Array.from(tbody.querySelectorAll('tr'));
+    let filteredRows = [...allRows];
+    let currentPage = 1;
+    const rowsPerPage = 15;
+    let currentSort = { column: 'created_at', direction: 'desc' };
+    let activeFilter = 'all';
+
+    function renderTable() {
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageRows = filteredRows.slice(start, end);
+
+        tbody.innerHTML = '';
+        if (pageRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color:#94a3b8;">Data tidak ditemukan</td></tr>';
+        } else {
+            pageRows.forEach(row => tbody.appendChild(row));
+        }
+
+        updatePagination();
+        updateEntriesInfo(start, end);
+    }
+
+    function updateEntriesInfo(start, end) {
+        const total = filteredRows.length;
+        const actualEnd = Math.min(end, total);
+        const displayStart = total === 0 ? 0 : start + 1;
+        entriesInfo.textContent = `Menampilkan ${displayStart} - ${actualEnd} dari ${total} komentar`;
+    }
+
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        paginationInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
+        
+        paginationBtns.innerHTML = '';
+        
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; renderTable(); } };
+        paginationBtns.appendChild(prevBtn);
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                const btn = document.createElement('button');
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                paginationBtns.appendChild(btn);
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                const span = document.createElement('span');
+                span.textContent = '...';
+                span.style.padding = '0 8px';
+                paginationBtns.appendChild(span);
+            }
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => { if(currentPage < totalPages) { currentPage++; renderTable(); } };
+        paginationBtns.appendChild(nextBtn);
+    }
+
+    function sortTable(column, direction) {
+        filteredRows.sort((a, b) => {
+            let aVal, bVal;
+
+            const columnMap = { 
+                id: 0, user: 1, product: 2, comment: 3, 
+                sentiment: 4, created_at: 5 
+            };
+            const cellIndex = columnMap[column];
+            
+            if (column === 'created_at') {
+                aVal = new Date(a.cells[cellIndex].textContent.trim());
+                bVal = new Date(b.cells[cellIndex].textContent.trim());
+            } else {
+                aVal = a.cells[cellIndex]?.textContent?.trim().toLowerCase() || '';
+                bVal = b.cells[cellIndex]?.textContent?.trim().toLowerCase() || '';
+            }
+
+            return direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+        });
+        currentPage = 1;
+        renderTable();
+    }
+
+    function applyFilters() {
+        const query = tableSearch.value.toLowerCase().trim();
+        
+        filteredRows = allRows.filter(row => {
+            const userName = row.cells[1].textContent.toLowerCase();
+            const productName = row.cells[2].textContent.toLowerCase();
+            const commentText = row.cells[3].textContent.toLowerCase();
+            const sentimentBadge = row.cells[4].querySelector('.badge-sentiment');
+            const sentiment = sentimentBadge ? sentimentBadge.textContent.trim().toLowerCase() : '';
+            
+            const matchesSearch = userName.includes(query) || productName.includes(query) || commentText.includes(query);
+            const matchesFilter = activeFilter === 'all' || sentiment === activeFilter;
+            
+            return matchesSearch && matchesFilter;
+        });
+        
+        currentPage = 1;
+        renderTable();
+    }
+
+    if (tableSearch) {
+        tableSearch.addEventListener('input', applyFilters);
+    }
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.dataset.column;
+            document.querySelectorAll('.sortable').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+            header.classList.add(`sort-${currentSort.direction}`);
+            sortTable(column, currentSort.direction);
+        });
+    });
+
+    // Initial render
+    sortTable('created_at', 'desc');
+    const dateHeader = document.querySelector('[data-column="created_at"]');
+    if (dateHeader) dateHeader.classList.add('sort-desc');
+});
+</script>
+{% endblock %}

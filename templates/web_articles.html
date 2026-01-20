@@ -112,7 +112,10 @@
                     {% endif %}
                 </td>
                 <td><strong>{{ a.title }}</strong></td>
-                <td style="color: #64748b; font-size: 0.9rem;">{{ a.description[:100] }}{% if a.description|length > 100 %}...{% endif %}</td>
+                <td style="color: #64748b; font-size: 0.9rem;">
+                    {% set plain_description = a.description|striptags %}
+                    {{ plain_description[:100] }}{% if plain_description|length > 100 %}...{% endif %}
+                </td>
                 <td style="font-size: 0.85rem; color: #94a3b8;">{{ a.created_at }}</td>
                 <td>
                     <form action="{{ url_for('web_admin.web_delete_article', article_id=a.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('Yakin ingin menghapus artikel ini?');">
