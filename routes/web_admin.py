@@ -1,3 +1,4 @@
+from urllib.parse import unquote
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash, send_from_directory
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -589,8 +590,16 @@ def web_edit_product(product_id):
             manufaktur = request.form.get('manufaktur', '').strip() or None
             nomor_registrasi = request.form.get('nomor_registrasi', '').strip() or None
             
-            image_filename = None
-            if 'image' in request.files:
+            # Ambil gambar lama dari DB sebagai default
+            cursor.execute("SELECT image FROM products WHERE id = %s", (product_id,))
+            current = cursor.fetchone()
+            image_filename = current['image'] if current else None
+
+            image_url = request.form.get('image_url', '').strip()
+            if image_url:
+                image_filename = image_url
+
+            elif 'image' in request.files:
                 file = request.files['image']
                 if file and file.filename != '' and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
@@ -599,11 +608,6 @@ def web_edit_product(product_id):
                     file_path = os.path.join(UPLOAD_FOLDER, filename)
                     file.save(file_path)
                     image_filename = filename
-            
-            if not image_filename:
-                cursor.execute("SELECT image FROM products WHERE id = %s", (product_id,))
-                current = cursor.fetchone()
-                image_filename = current['image'] if current else None
 
             if not merek or not nama or not harga or not kategori_penyakit:
                 flash('Merek, nama, harga, dan kategori penyakit wajib diisi', 'danger')
@@ -700,16 +704,21 @@ def web_bulk_delete_products():
 @web_admin_bp.route('/products/import/template')
 @login_required
 def web_download_product_template():
-    """Download template CSV untuk import produk"""
-    cols = ['merek', 'nama', 'harga', 'kategori_penyakit', 'deskripsi', 'dosis', 'efek_samping', 'komposisi', 'manufaktur', 'nomor_registrasi']
+    cols = [
+        'merek', 'nama', 'harga', 'kategori_penyakit',
+        'image',  # OPSIONAL
+        'deskripsi', 'dosis', 'efek_samping',
+        'komposisi', 'manufaktur', 'nomor_registrasi'
+    ]
+
     df = pd.DataFrame(columns=cols)
-    
-    # Add example row
-    example = {
+
+    df.loc[0] = {
         'merek': 'Brand ABC',
         'nama': 'Serum Vitamin C',
         'harga': 150000,
         'kategori_penyakit': 'Acne',
+        'image': '',  # boleh dikosongkan
         'deskripsi': 'Deskripsi produk...',
         'dosis': '2x sehari',
         'efek_samping': 'Kemerahan ringan',
@@ -717,13 +726,18 @@ def web_download_product_template():
         'manufaktur': 'PT. Farmasi',
         'nomor_registrasi': 'NA123456789'
     }
-    df.loc[0] = example
-    
+
     output = io.BytesIO()
-    df.to_csv(output, index=False)
+    df.to_csv(output, index=False, sep=';')
     output.seek(0)
-    
-    return send_file(output, mimetype='text/csv', as_attachment=True, download_name='template_produk.csv')
+
+    return send_file(
+        output,
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name='template_produk.csv'
+    )
+
 
 @web_admin_bp.route('/products/import', methods=['POST'])
 @login_required
@@ -743,6 +757,10 @@ def web_import_products():
             df = pd.read_csv(file)
         elif file.filename.endswith(('.xls', '.xlsx')):
             df = pd.read_excel(file)
+
+            df.columns = df.columns.str.strip().str.replace('\xa0', '')
+            print("COLUMNS:", df.columns.tolist())
+
         else:
             flash('Format file tidak didukung. Gunakan CSV atau Excel', 'danger')
             return redirect(url_for('web_admin.web_products'))
@@ -758,18 +776,26 @@ def web_import_products():
         
         count = 0
         for _, row in df.iterrows():
+            image = None
+
+            if 'gambar' in df.columns and not pd.isna(row['gambar']):
+                image = unquote(str(row['gambar']).strip())
+
+            print("IMAGE FROM EXCEL:", repr(image))
+
             if pd.isna(row['merek']) or pd.isna(row['nama']):
                 continue
                 
             cursor.execute("""
                 INSERT INTO products 
-                (merek, nama, harga, kategori_penyakit, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 str(row['merek']),
                 str(row['nama']),
                 row['harga'] if not pd.isna(row['harga']) else 0,
                 str(row['kategori_penyakit']) if not pd.isna(row['kategori_penyakit']) else None,
+                image,
                 str(row['deskripsi']) if 'deskripsi' in df.columns and not pd.isna(row['deskripsi']) else None,
                 str(row['dosis']) if 'dosis' in df.columns and not pd.isna(row['dosis']) else None,
                 str(row['efek_samping']) if 'efek_samping' in df.columns and not pd.isna(row['efek_samping']) else None,

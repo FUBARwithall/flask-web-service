@@ -160,7 +160,12 @@
                 <td>{{ p.id }}</td>
                 <td>
                     {% if p.image %}
-                    <img src="{{ url_for('web_admin.uploaded_file', filename=p.image) }}" alt="Gambar Produk" class="image-thumbnail">
+                    {% set img = p.image | trim %}
+                    {% if img.startswith('http') %}
+                    <img src="{{ img }}" alt="Gambar Produk" class="image-thumbnail">
+                    {% else %}
+                    <img src="{{ url_for('web_admin.uploaded_file', filename=img) }}" alt="Gambar Produk" class="image-thumbnail">
+                    {% endif %}
                     {% else %}
                     <span style="color: #94a3b8;">Tidak ada</span>
                     {% endif %}

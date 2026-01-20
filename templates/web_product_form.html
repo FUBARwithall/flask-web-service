@@ -47,22 +47,47 @@
 
         <div class="form-group">
             <label class="form-label" for="kategori_penyakit">Kategori penyakit <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="kategori_penyakit" name="kategori_penyakit" class="form-input" value="{{ product.kategori_penyakit if product else '' }}" required>
-        </div>
+            <input type="text" id="kategori_penyakit" name="kategori_penyakit" class="form-input"
+                value="{{ product.kategori_penyakit if product else '' }}" required>
+            </div>
+            <div class="form-group">
+    <label class="form-label">Gambar (opsional)</label>
 
-        <div class="form-group">
-            <label class="form-label" for="image">Gambar (opsional)</label>
-            {% if product and product.image %}
-            <div style="margin-bottom: 12px;">
-                <img src="{{ url_for('web_admin.uploaded_file', filename=product.image) }}" alt="Gambar Saat Ini" class="image-preview">
-                <div class="helper-text">Gambar saat ini</div>
+    {% if product.image %}
+        {% set img = product.image | trim %}
+        <div style="margin-bottom: 12px;">
+            {% if img.startswith('http') %}
+                <img src="{{ img }}" alt="Gambar Saat Ini" class="image-preview">
+            {% else %}
+                <img src="{{ url_for('web_admin.uploaded_file', filename=img) }}" alt="Gambar Saat Ini" class="image-preview">
+            {% endif %}
+            <div class="helper-text">Gambar saat ini</div>
+            </div>
+            {% else %}
+            <div class="helper-text" style="color:#94a3b8;">
+                Belum ada gambar
             </div>
             {% endif %}
+            
+            <!-- 🔹 URL INPUT -->
+            <input type="text" name="image_url" class="form-input" placeholder="https://example.com/image.jpg"
+                style="margin-bottom:8px;">
+            
+            <div class="helper-text">
+                Isi URL gambar jika ingin menggunakan gambar dari link
+            </div>
+            
+            <!-- 🔹 FILE INPUT -->
             <input type="file" id="image" name="image" class="form-input" accept="image/*">
-            <div class="helper-text">Upload gambar produk (JPG, PNG, GIF). Biarkan kosong jika tidak ingin mengubah gambar.</div>
-        </div>
-
-        <div class="form-group">
+            
+            <div class="helper-text">
+                Atau upload gambar (JPG, PNG, GIF). Kosongkan jika tidak ingin mengubah.
+            </div>
+            </div>
+            
+            
+            
+            <div class="form-group">
             <label class="form-label" for="deskripsi">Deskripsi <span style="color: #ef4444;">*</span></label>
             <textarea id="deskripsi" name="deskripsi" class="form-input textarea" required>{{ product.deskripsi if product else '' }}</textarea>
         </div>
