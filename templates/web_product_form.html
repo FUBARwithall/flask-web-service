@@ -4,22 +4,112 @@
 
 {% block extra_css %}
 <style>
-    .form-group { margin-bottom: 24px; }
-    .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #334155; font-size: 0.95rem; }
-    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 0; font-size: 0.95rem; font-family: inherit; transition: all 0.2s ease; }
-    .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-    .form-input.textarea { resize: vertical; min-height: 200px; }
-    .image-preview { width: 100px; height: 100px; object-fit: cover; border: 1px solid #e2e8f0; border-radius: 0; margin-bottom: 12px; }
-    .btn { padding: 10px 18px; border-radius: 0; border: none; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
-    .btn-primary { background: #3b82f6; color: white; }
-    .btn-primary:hover { background: #2563eb; }
-    .btn-secondary { background: #e2e8f0; color: #475569; }
-    .btn-secondary:hover { background: #cbd5e1; }
-    .card-wrapper { background: white; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; }
-    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-    .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
-    .page-header i { color: #3b82f6; }
-    .helper-text { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #334155;
+        font-size: 0.95rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 0;
+        font-size: 0.95rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-input.textarea {
+        resize: vertical;
+        min-height: 200px;
+    }
+
+    .image-preview {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 1px solid #e2e8f0;
+        border-radius: 0;
+        margin-bottom: 12px;
+    }
+
+    .btn {
+        padding: 10px 18px;
+        border-radius: 0;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .btn-secondary:hover {
+        background: #cbd5e1;
+    }
+
+    .card-wrapper {
+        background: white;
+        border-radius: 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header i {
+        color: #3b82f6;
+    }
+
+    .helper-text {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-top: 4px;
+    }
 </style>
 {% endblock %}
 
@@ -32,94 +122,106 @@
     <form method="post" enctype="multipart/form-data">
         <div class="form-group">
             <label class="form-label" for="merek">Merek <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="merek" name="merek" class="form-input" value="{{ product.merek if product else '' }}" required>
+            <input type="text" id="merek" name="merek" class="form-input" value="{{ product.merek if product else '' }}"
+                required>
         </div>
 
         <div class="form-group">
             <label class="form-label" for="nama">Nama <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="nama" name="nama" class="form-input" value="{{ product.nama if product else '' }}" required>
+            <input type="text" id="nama" name="nama" class="form-input" value="{{ product.nama if product else '' }}"
+                required>
         </div>
 
         <div class="form-group">
             <label class="form-label" for="harga">Harga <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="harga" name="harga" class="form-input" value="{{ product.harga if product else '' }}" required>
+            <input type="text" id="harga" name="harga" class="form-input" value="{{ product.harga if product else '' }}"
+                required>
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="kategori_penyakit">Kategori penyakit <span style="color: #ef4444;">*</span></label>
+            <label class="form-label" for="kategori_penyakit">Kategori penyakit <span
+                    style="color: #ef4444;">*</span></label>
             <input type="text" id="kategori_penyakit" name="kategori_penyakit" class="form-input"
                 value="{{ product.kategori_penyakit if product else '' }}" required>
-            </div>
-            <div class="form-group">
-    <label class="form-label">Gambar (opsional)</label>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Gambar (opsional)</label>
 
-    {% if product.image %}
-        {% set img = product.image | trim %}
-        <div style="margin-bottom: 12px;">
-            {% if img.startswith('http') %}
+            {% if product.image %}
+            {% set img = product.image | trim %}
+            <div style="margin-bottom: 12px;">
+                {% if img.startswith('http') %}
                 <img src="{{ img }}" alt="Gambar Saat Ini" class="image-preview">
-            {% else %}
-                <img src="{{ url_for('web_admin.uploaded_file', filename=img) }}" alt="Gambar Saat Ini" class="image-preview">
-            {% endif %}
-            <div class="helper-text">Gambar saat ini</div>
+                {% else %}
+                <img src="{{ url_for('web_admin.uploaded_file', filename=img) }}" alt="Gambar Saat Ini"
+                    class="image-preview">
+                {% endif %}
+                <div class="helper-text">Gambar saat ini</div>
             </div>
             {% else %}
             <div class="helper-text" style="color:#94a3b8;">
                 Belum ada gambar
             </div>
             {% endif %}
-            
+
             <!-- 🔹 URL INPUT -->
             <input type="text" name="image_url" class="form-input" placeholder="https://example.com/image.jpg"
                 style="margin-bottom:8px;">
-            
+
             <div class="helper-text">
                 Isi URL gambar jika ingin menggunakan gambar dari link
             </div>
-            
+
             <!-- 🔹 FILE INPUT -->
             <input type="file" id="image" name="image" class="form-input" accept="image/*">
-            
+
             <div class="helper-text">
                 Atau upload gambar (JPG, PNG, GIF). Kosongkan jika tidak ingin mengubah.
             </div>
-            </div>
-            
-            
-            
-            <div class="form-group">
+        </div>
+
+
+        <div class="form-group">
             <label class="form-label" for="deskripsi">Deskripsi <span style="color: #ef4444;">*</span></label>
-            <textarea id="deskripsi" name="deskripsi" class="form-input textarea" required>{{ product.deskripsi if product else '' }}</textarea>
+            <textarea id="deskripsi" name="deskripsi" class="form-input textarea"
+                required>{{ product.deskripsi if product else '' }}</textarea>
         </div>
 
         <div class="form-group">
             <label class="form-label" for="dosis">Dosis <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="dosis" name="dosis" class="form-input" value="{{ product.dosis if product else '' }}" required>
+            <input type="text" id="dosis" name="dosis" class="form-input" value="{{ product.dosis if product else '' }}"
+                required>
         </div>
 
         <div class="form-group">
             <label class="form-label" for="efek_samping">Efek Samping <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="efek_samping" name="efek_samping" class="form-input" value="{{ product.efek_samping if product else '' }}">
+            <input type="text" id="efek_samping" name="efek_samping" class="form-input"
+                value="{{ product.efek_samping if product else '' }}">
         </div>
 
         <div class="form-group">
             <label class="form-label" for="komposisi">Komposisi <span style="color: #ef4444;">*</span></label>
-            <textarea id="komposisi" name="komposisi" class="form-input textarea" required>{{ product.komposisi if product else '' }}</textarea>
+            <textarea id="komposisi" name="komposisi" class="form-input textarea"
+                required>{{ product.komposisi if product else '' }}</textarea>
         </div>
 
         <div class="form-group">
             <label class="form-label" for="manufaktur">Manufaktur <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="manufaktur" name="manufaktur" class="form-input" value="{{ product.manufaktur if product else '' }}" required>
+            <input type="text" id="manufaktur" name="manufaktur" class="form-input"
+                value="{{ product.manufaktur if product else '' }}" required>
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="nomor_registrasi">Nomor Registrasi <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="nomor_registrasi" name="nomor_registrasi" class="form-input" value="{{ product.nomor_registrasi if product else '' }}" required>
+            <label class="form-label" for="nomor_registrasi">Nomor Registrasi <span
+                    style="color: #ef4444;">*</span></label>
+            <input type="text" id="nomor_registrasi" name="nomor_registrasi" class="form-input"
+                value="{{ product.nomor_registrasi if product else '' }}" required>
         </div>
 
         <div style="display: flex; gap: 12px; margin-top: 32px;">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
-            <a href="{{ url_for('web_admin.web_products') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
+            <a href="{{ url_for('web_admin.web_products') }}" class="btn btn-secondary"><i class="fas fa-times"></i>
+                Batal</a>
         </div>
     </form>
 </div>
