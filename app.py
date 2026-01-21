@@ -10,7 +10,7 @@ from config import SECRET_KEY, UPLOAD_FOLDER, RESEND_FROM_EMAIL
 from flask_jwt_extended import JWTManager
 from flask_mysqldb import MySQL
 
-resend.api_key = 're_G81rJoda_4yAmyTMaqdbbh9R58nt8U6ty'
+resend.api_key = os.getenv('RESEND_API_KEY')
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
