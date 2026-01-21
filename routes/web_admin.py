@@ -533,9 +533,17 @@ def web_create_product():
         komposisi = request.form.get('komposisi', '').strip() or None
         manufaktur = request.form.get('manufaktur', '').strip() or None
         nomor_registrasi = request.form.get('nomor_registrasi', '').strip() or None
-        
+
+        # ================= IMAGE HANDLING =================
         image_filename = None
-        if 'image' in request.files:
+
+        # 1️⃣ Cek URL dulu
+        image_url = request.form.get('image_url', '').strip()
+        if image_url:
+            image_filename = image_url
+
+        # 2️⃣ Kalau URL kosong, cek file upload
+        elif 'image' in request.files:
             file = request.files['image']
             if file and file.filename != '' and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
@@ -556,7 +564,14 @@ def web_create_product():
                 return redirect(url_for('web_admin.web_products'))
 
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO products (merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (merek, nama, harga, kategori_penyakit, image_filename, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi))
+            cursor.execute("""
+                INSERT INTO products 
+                (merek, nama, harga, kategori_penyakit, image, deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                merek, nama, harga, kategori_penyakit, image_filename,
+                deskripsi, dosis, efek_samping, komposisi, manufaktur, nomor_registrasi
+            ))
             conn.commit()
 
             cursor.close()

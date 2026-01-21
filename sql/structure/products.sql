@@ -16,7 +16,4 @@ CREATE TABLE `products` (
 
 -- update tipe data efek_samping
 ALTER TABLE products
-MODIFY efek_samping VARCHAR(500)
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci
-NULL;
+MODIFY COLUMN efek_samping VARCHAR(500) DEFAULT NULL COMMENT 'Side effects';
