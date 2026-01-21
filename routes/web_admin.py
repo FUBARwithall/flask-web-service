@@ -154,8 +154,12 @@ def web_dashboard():
                              pending_comments=pending_comments,
                              sentiment_stats=sentiment_stats)
     except Exception as e:
+        import traceback
         print(f"Error in web_dashboard: {e}")
-        flash('Terjadi kesalahan server', 'danger')
+        traceback.print_exc()
+        # Clear session to prevent redirect loop
+        session.clear()
+        flash(f'Terjadi kesalahan server: {str(e)}', 'danger')
         return redirect(url_for('web_admin.web_login'))
     
 # ==================== WEB USERS ====================

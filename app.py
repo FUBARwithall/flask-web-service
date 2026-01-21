@@ -1,6 +1,7 @@
 ﻿from flask import Flask, jsonify, redirect, url_for, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
+from werkzeug.middleware.proxy_fix import ProxyFix
 import resend
 import os
 
@@ -15,6 +16,17 @@ resend.api_key = os.getenv('RESEND_API_KEY')
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 CORS(app)
+
+# ==================== PROXY & SESSION CONFIGURATION ====================
+# Configure ProxyFix for deployment behind reverse proxy (Nginx)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# Session cookie settings for production (HTTPS)
+app.config.update(
+    SESSION_COOKIE_SECURE=True,    # Only send cookie over HTTPS
+    SESSION_COOKIE_HTTPONLY=True,  # Prevent JavaScript access to session cookie
+    SESSION_COOKIE_SAMESITE='Lax', # CSRF protection
+)
 
 @app.route('/')
 def index():
